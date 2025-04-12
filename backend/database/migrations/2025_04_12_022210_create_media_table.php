@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('article_id')->constrained('article_news')->onDelete('cascade');
+            $table->unsignedBigInteger('article_id');
             $table->enum('media_type', ['image', 'video']);
-            $table->string('url');
+            $table->string('url'); // URL untuk gambar (upload) atau video (YouTube, dll)
             $table->timestamps();
-
+    
+            $table->foreign('article_id')->references('id')->on('article_news')->onDelete('cascade');
         });
     }
 

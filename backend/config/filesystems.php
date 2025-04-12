@@ -59,6 +59,11 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        'gcs' => [
+            'driver' => 'custom',
+            'via' => App\Providers\GoogleCloudStorageServiceProvider::class,
+        ],
+
 
     ],
 
