@@ -25,7 +25,11 @@ class CategoryController extends Controller
 
     public function show($id)
     {
-        return Category::findOrFail($id);
+        $articles = \App\Models\ArticleNews::where('category_id', $id)
+                    ->latest()
+                    ->get();
+    
+        return response()->json($articles);
     }
 
     public function update(Request $request, $id)

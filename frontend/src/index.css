@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-lightGray text-textGray font-sans;
+  /* place-items: center; */
+  padding: 0 100px;
+}
+
+@media (max-width: 768px) {
+  body{
+  /* place-items: center; */
+    padding: 0;
+    min-width: 420px;
+  }
+}
