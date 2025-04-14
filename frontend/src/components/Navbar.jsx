@@ -123,13 +123,17 @@ export default function Navbar() {
 
         {/* Right Buttons */}
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition">
-            Upgrade Pro
-          </button>
-          <button className="px-4 py-2 bg-orange-500 text-white rounded-full text-sm font-semibold hover:bg-orange-600 transition">
-            Post Ads
-          </button>
-        </div>
+      <button
+        onClick={() => navigate('/login')}
+        className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition">
+        Login
+      </button>
+      <button
+        onClick={() => navigate('/register')}
+        className="px-4 py-2 bg-orange-500 text-white rounded-full text-sm font-semibold hover:bg-orange-600 transition">
+        Register
+      </button>
+    </div>
       </div>
     </header>
   );

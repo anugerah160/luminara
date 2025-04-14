@@ -1,57 +1,82 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getCategoryById } from "../services/categoryService";
+import { Link } from "react-router-dom";
 
-const articles = [
-  {
-    title: "Musik Jazz lagi Trend di Tahun ini",
-    date: "Feb 27, 2025",
-    image: "https://via.placeholder.com/100x60",
-  },
-  {
-    title: "Musik Jazz lagi Trend di Tahun ini",
-    date: "Feb 27, 2025",
-    image: "https://via.placeholder.com/100x60",
-  },
-  {
-    title: "Musik Jazz lagi Trend di Tahun ini",
-    date: "Feb 27, 2025",
-    image: "https://via.placeholder.com/100x60",
-  },
-];
+const LatestForYou = ({ categoryId }) => {
+  const [categoryData, setCategoryData] = useState(null);
 
-const LatestForYou = () => {
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await getCategoryById(categoryId);
+        setCategoryData(res);
+      } catch (error) {
+        console.error("Failed to load category data", error);
+      }
+    }
+    fetchData();
+  }, [categoryId]);
+
+  if (!categoryData) {
+    return <div className="text-gray-500 px-4 py-8">Loading...</div>;
+  }
+
+  const { category, articles } = categoryData;
+  const featured = articles.find((a) => a.is_featured === "yes");
+  const others = articles.filter((a) => a.id !== featured?.id);
+
   return (
     <section className="mt-10 px-4">
       <div className="flex justify-between items-center mb-3">
         <div>
           <h3 className="text-lg font-bold">Latest For You</h3>
-          <p className="font-semibold">in Entertainment</p>
+          <p className="font-semibold">in {category.name}</p>
         </div>
-        <a href="#" className="text-sm text-gray-500 hover:underline">Explore All</a>
+        <Link
+          to={`/categories/${category.id}`}
+          className="text-sm text-gray-500 hover:underline"
+        >
+          Explore All
+        </Link>
       </div>
+
       <div className="md:flex gap-4">
-        {/* Left Featured */}
-        <div className="relative md:w-1/2">
-          <img
-            src="https://via.placeholder.com/600x300"
-            alt="Featured"
-            className="w-full rounded-lg"
-          />
-          <div className="absolute bottom-3 left-3 text-white">
-            <div className="text-xs font-light">Featured</div>
-            <div className="text-lg font-bold">Sistem Pengemudian Otonom</div>
-            <div className="text-xs">Feb 27, 2025</div>
-          </div>
-        </div>
-        {/* Right List */}
-        <div className="mt-4 md:mt-0 md:w-1/2 flex flex-col gap-3">
-          {articles.map((item, idx) => (
-            <div key={idx} className="flex gap-3 items-center bg-white rounded-lg p-2 shadow">
-              <img src={item.image} alt={item.title} className="w-16 h-10 object-cover rounded" />
-              <div>
-                <p className="text-sm font-medium">{item.title}</p>
-                <span className="text-xs text-gray-500">{item.date}</span>
-              </div>
+        {/* Featured Left */}
+        {featured && (
+          <div className="relative md:w-1/2">
+            <img
+              src={featured.thumbnail}
+              alt={featured.name}
+              className="w-full h-48 md:h-64 object-cover rounded-xl"
+            />
+            <div className="absolute bottom-3 left-3 text-white">
+              <div className="text-xs font-light">Featured</div>
+              <div className="text-lg font-bold w-[80%]">{featured.name}</div>
+              <div className="text-xs">{new Date(featured.created_at).toLocaleDateString()}</div>
             </div>
+          </div>
+        )}
+
+        {/* Article List Right */}
+        <div className="mt-4 md:mt-0 md:w-1/2 flex flex-col gap-3">
+          {others.slice(0, 3).map((item) => (
+            <Link
+              to={`/articles/${item.slug}`}
+              key={item.id}
+              className="flex gap-3 items-center bg-white rounded-lg p-2 shadow hover:shadow-md transition"
+            >
+              <img
+                src={item.thumbnail}
+                alt={item.name}
+                className="w-16 h-12 object-cover rounded"
+              />
+              <div>
+                <p className="text-sm font-medium">{item.name}</p>
+                <span className="text-xs text-gray-500">
+                  {new Date(item.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

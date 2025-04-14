@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAllCategories } from '../services/categoryService';
 import { useNavigate, useLocation } from 'react-router-dom';
-import * as FaIcons from 'react-icons/fa'; // import semua Fa icon
+import * as FaIcons from 'react-icons/fa';
 
 export default function CategoryBar() {
   const [categories, setCategories] = useState([]);

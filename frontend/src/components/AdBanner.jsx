@@ -1,12 +1,13 @@
 import React from "react";
+import dummyHero from '../assets/dummy-article1.jpg';
 
 const AdBanner = () => {
   return (
-    <div className="mt-8 px-4">
+    <div className="mt-8 px-4 justify-items-center">
       <img
-        src="https://via.placeholder.com/800x100?text=Our+Advertisement"
+        src={dummyHero}
         alt="Ad Banner"
-        className="w-full rounded-lg shadow"
+        className="w-[20%] rounded-lg shadow"
       />
     </div>
   );

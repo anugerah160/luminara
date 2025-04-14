@@ -88,6 +88,17 @@ class ArticleNewsController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
+    public function getArticlesByAuthor($authorId)
+    {
+        $articles = ArticleNews::with('category:id,name')
+            ->where('author_id', $authorId)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+    
+        return response()->json($articles);
+    }
+
     public function search(Request $request)
     {
         $keyword = $request->input('q');

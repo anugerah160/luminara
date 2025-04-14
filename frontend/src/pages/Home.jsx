@@ -107,9 +107,9 @@ export default function HomePage() {
 
       <AuthorList />
       <AdBanner />
-      <LatestForYou />
-      <LatestForYou />
-      <LatestForYou />
+      <LatestForYou categoryId={1} />
+      <LatestForYou categoryId={2} />
+      <LatestForYou categoryId={3} />
       <Footer />
     </div>
   );

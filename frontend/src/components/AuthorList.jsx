@@ -1,9 +1,10 @@
 import React from "react";
+import image from '../assets/megan.jpg';
 
-const authors = new Array(7).fill({
-  name: "Selena Rodriguez",
+const authors = new Array(5).fill({
+  name: "Selena Rodrigue",
   newsCount: "3 News",
-  image: "https://via.placeholder.com/60x60", // placeholder image
+  image: `${image}`,
 });
 
 const AuthorList = () => {

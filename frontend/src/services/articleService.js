@@ -14,3 +14,18 @@ export const searchArticles = async (params = {}) => {
   });
   return res.data;
 };
+export const getArticlesByAuthor = async (authorId) => {
+  const res = await api.get(`/authors/${authorId}`);
+  return res.data;
+};
+export const getCommentsById = async (articleId) => {
+  const res = await api.get(`/comments/${articleId}`);
+  return res.data;
+}
+export const postComment = async (articleId, comment) => {
+  const res = await api.post(`/comments`, {
+    article_id: articleId,
+    comment: comment,
+  });
+  return res.data;
+};
