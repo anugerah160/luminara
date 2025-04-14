@@ -30,6 +30,6 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('/articles', [ArticleNewsController::class, 'index']);
 Route::get('/articles/search', [ArticleNewsController::class, 'search']);
-Route::get('/articles/{id}', [ArticleNewsController::class, 'show']);
-Route::get('/articles/slug/{slug}', [ArticleNewsController::class, 'showBySlug']);
+// Route::get('/articles/{id}', [ArticleNewsController::class, 'show']);
+Route::get('/articles/{slug}', [ArticleNewsController::class, 'showBySlug']);
 Route::get('/comments/{article_id}', [CommentController::class, 'index']);

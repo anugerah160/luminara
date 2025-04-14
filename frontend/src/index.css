@@ -8,6 +8,16 @@ body {
   padding: 0 100px;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+
 @media (max-width: 768px) {
   body{
   /* place-items: center; */

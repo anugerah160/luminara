@@ -1,63 +1,72 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { getCategoryById } from '../services/categoryService';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { searchArticles } from '../services/articleService';
 import NewsCard from '../components/NewsCard';
 import Navbar from '../components/Navbar';
-import CategoryBar from '../components/CategoryBar';
 import AdBanner from '../components/AdBanner';
 import Footer from '../components/Footer';
 
-export default function CategoryPage() {
-  const { id } = useParams();
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
+export default function ArticleSearch() {
+  const query = useQuery();
+  const q = query.get('q') || '';
+  const author = query.get('author') || '';
+  const category = query.get('category') || '';
+  const sort = query.get('sort') || 'latest';
+
   const [articles, setArticles] = useState([]);
-  const [categoryName, setCategoryName] = useState('');
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
 
   useEffect(() => {
-    async function fetchCategoryArticles() {
+    async function fetchArticles() {
+      setLoading(true);
       try {
-        const res = await getCategoryById(id);
-
-        setArticles(res.articles || []);
-        setCategoryName(res.category?.name || 'News');
-        setPage(1); // Reset page on new category
+        const res = await searchArticles({ q, author, category, sort });
+        setArticles(res.data || []);
       } catch (err) {
-        console.error('Failed to fetch category articles:', err);
+        console.error('Search error:', err);
         setArticles([]);
-        setCategoryName('News');
+      } finally {
+        setLoading(false);
       }
     }
 
-    fetchCategoryArticles();
-  }, [id]);
+    fetchArticles();
+    setPage(1);
+  }, [q, author, category, sort]);
 
   const startIndex = (page - 1) * itemsPerPage;
   const currentItems = articles.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(articles.length / itemsPerPage);
-
   const placeholders = Array(itemsPerPage - currentItems.length).fill(null);
 
   return (
     <>
       <Navbar />
-      <CategoryBar />
 
       <div className="px-6 py-10 max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-12">
-          Explore Our <span className="text-blue-600">{categoryName}</span> News
+          Search Results {q && (
+            <span className="text-blue-600">for "{q}"</span>
+          )}
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 min-h-[600px]">
-          {[...currentItems, ...placeholders].map((article, i) =>
-            article ? (
+          {loading ? (
+            placeholders.map((_, i) => (
+              <div key={i} className="border rounded-md shadow-sm h-[330px] bg-white animate-pulse" />
+            ))
+          ) : currentItems.length > 0 ? (
+            currentItems.map((article) => (
               <NewsCard key={article.id} article={article} />
-            ) : (
-              <div
-                key={`placeholder-${i}`}
-                className="border rounded-md shadow-sm h-[330px] bg-white"
-              />
-            )
+            ))
+          ) : (
+            <div className="col-span-full text-center text-gray-500">No articles found.</div>
           )}
         </div>
 

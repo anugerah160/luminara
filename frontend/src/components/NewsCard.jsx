@@ -18,7 +18,7 @@ export default function NewsCard({ article }) {
     : '';
 
   return (
-    <Link to={`/article/${slug}`} className="relative group h-full">
+    <Link to={`/articles/${slug}`} className="relative group h-full">
       <div className="bg-white rounded-2xl shadow hover:shadow-lg transition duration-300 w-auto h-full flex flex-col overflow-hidden">
         <div className="relative h-48 w-full">
           {/* Badge: Category */}
