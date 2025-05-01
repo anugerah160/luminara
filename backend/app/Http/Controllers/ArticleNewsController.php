@@ -44,7 +44,6 @@ class ArticleNewsController extends Controller
             'name' => 'required|string',
             'thumbnail' => 'nullable|string',
             'content' => 'required|string',
-            'video' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'is_featured' => 'in:yes,no',
         ]);
@@ -67,7 +66,6 @@ class ArticleNewsController extends Controller
             'name' => 'required|string',
             'thumbnail' => 'nullable|string',
             'content' => 'required|string',
-            'video' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'is_featured' => 'in:yes,no',
         ]);

@@ -9,19 +9,34 @@ use Illuminate\Support\Facades\URL;
 class ArticleNews extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'thumbnail', 'content', 'video',
+        'name', 'slug', 'thumbnail', 'content',
         'category_id', 'author_id', 'is_featured'
     ];
 
     protected static function booted()
     {
         static::creating(function ($article) {
-            $article->slug = Str::slug($article->name);
+            $article->slug = static::generateUniqueSlug($article->name);
         });
 
         static::updating(function ($article) {
-            $article->slug = Str::slug($article->name);
+            $article->slug = static::generateUniqueSlug($article->name, $article->id);
         });
+    }
+
+    protected static function generateUniqueSlug($name, $ignoreId = null)
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::where('slug', $slug)
+            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->exists()) {
+            $slug = $originalSlug . '-' . $counter++;
+        }
+
+        return $slug;
     }
     
     public function category()

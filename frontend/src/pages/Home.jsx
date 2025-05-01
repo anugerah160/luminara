@@ -4,7 +4,7 @@ import CategoryBar from '../components/CategoryBar';
 import FeaturedNews from '../components/FeaturedNews';
 import NewsCard from '../components/NewsCard';
 import AuthorList from "../components/AuthorList";
-import AdBanner from "../components/AdBanner";
+// import AdBanner from "../components/AdBanner";
 import LatestForYou from "../components/LatestForYou";
 import Footer from "../components/Footer";
 import { getAllArticles } from '../services/articleService';
@@ -106,10 +106,10 @@ export default function HomePage() {
       </div>
 
       <AuthorList />
-      <AdBanner />
-      <LatestForYou categoryId={1} />
-      <LatestForYou categoryId={2} />
-      <LatestForYou categoryId={3} />
+      {/* <AdBanner /> */}
+      <LatestForYou categoryName={"Sports"} />
+      {/* <LatestForYou categoryName={2} /> */}
+      {/* <LatestForYou categoryName={3} /> */}
       <Footer />
     </div>
   );

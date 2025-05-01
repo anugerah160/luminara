@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { getCategoryById } from "../services/categoryService";
+import { getCategoryByName } from "../services/categoryService";
 import { Link } from "react-router-dom";
 
-const LatestForYou = ({ categoryId }) => {
+const LatestForYou = ({ categoryName }) => {
   const [categoryData, setCategoryData] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await getCategoryById(categoryId);
+        const res = await getCategoryByName(categoryName);
         setCategoryData(res);
       } catch (error) {
         console.error("Failed to load category data", error);
       }
     }
     fetchData();
-  }, [categoryId]);
+  }, [categoryName]);
 
   if (!categoryData) {
     return <div className="text-gray-500 px-4 py-8">Loading...</div>;
@@ -33,7 +33,7 @@ const LatestForYou = ({ categoryId }) => {
           <p className="font-semibold">in {category.name}</p>
         </div>
         <Link
-          to={`/categories/${category.id}`}
+          to={`/categories/${encodeURIComponent(category.name)}`}
           className="text-sm text-gray-500 hover:underline"
         >
           Explore All

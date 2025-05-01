@@ -5,7 +5,7 @@ export const getAllCategories = async () => {
   return res.data;
 };
 
-export const getCategoryById = async (id) => {
-  const res = await api.get(`/categories/${id}`);
+export const getCategoryByName = async (name) => {
+  const res = await api.get(`/categories/${name}`);
   return res.data;
 };

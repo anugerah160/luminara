@@ -13,18 +13,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // ✅ Middleware global (opsional)
+        // Middleware global (opsional)
         $middleware->append([
             \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
         ]);
 
-        // ✅ Middleware alias (untuk route)
+        // Middleware alias (untuk route)
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'auth:sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        // ✅ Middleware group "api"
+        // Middleware group "api"
         $middleware->group('api', [
             EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,

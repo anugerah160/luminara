@@ -23,15 +23,19 @@ class CategoryController extends Controller
         return response()->json($category, 201);
     }
 
-    public function show($id)
+    public function show($name)   // <-- Param ganti jadi $name
     {
+        // Cari kategori berdasarkan nama
+        $category = Category::where('name', $name)->firstOrFail();
+
+        // Ambil artikel dengan category_id yang sesuai
         $articles = \App\Models\ArticleNews::with('category')
-                    ->where('category_id', $id)
+                    ->where('category_id', $category->id)
                     ->latest()
                     ->get();
-    
+
         return response()->json([
-            'category' => $articles->first()?->category,
+            'category' => $category,
             'articles' => $articles,
         ]);
     }
