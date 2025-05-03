@@ -7,7 +7,7 @@ export default function Register() {
     name: '',
     email: '',
     password: '',
-    role: 'reader',
+    // role: 'reader',
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ export default function Register() {
             onChange={handleChange}
             required
           />
-          <select
+          {/* <select
             name="role"
             className="w-full border px-4 py-2 rounded-lg"
             value={form.role}
@@ -66,7 +66,7 @@ export default function Register() {
             <option value="reader">Daftar sebagai Pembaca</option>
             <option value="author">Daftar sebagai Penulis</option>
           </select>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-red-500 text-sm">{error}</p>} */}
           <button
             type="submit"
             className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition"

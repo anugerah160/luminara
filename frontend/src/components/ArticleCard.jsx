@@ -16,7 +16,8 @@ export const ArticleCard = ({ article }) => {
         <p className="text-gray-500 mt-1">
           {article.author?.name} – {new Date(article.created_at).toLocaleDateString()}
         </p>
-        <p className="text-gray-700 mt-2 line-clamp-3">{article.content}</p>
+        <p className="text-gray-700 mt-2 line-clamp-3">dangerouslySetInnerHTML={{ __html: article.content }}</p>
+        
         <Link
           to={`/articles/${article.slug}`}
           className="text-orange-500 mt-4 inline-block"

@@ -72,19 +72,10 @@ export default function DetailArticle() {
           <h1 className="text-3xl font-bold mb-4 leading-tight">{article.name}</h1>
 
           {/* Content */}
-          <div className="prose max-w-none prose-lg text-gray-800">
-            <p>{article.content}</p>
-          </div>
-
-          {/* Video */}
-          {article.video && (
-            <div className="mt-10">
-              <video controls className="w-full rounded-xl shadow">
-                <source src={article.video} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          )}
+          <div
+            className="prose max-w-none prose-lg text-gray-800"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          ></div>
 
           {/* Share */}
           <Share links={article.share_links} />

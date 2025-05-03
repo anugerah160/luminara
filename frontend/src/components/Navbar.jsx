@@ -49,10 +49,10 @@ export default function Navbar() {
                 👋 {user.name}
               </span>
               <button
-                onClick={handleLogout}
+                onClick={() => navigate('/author')}
                 className="px-4 py-2 bg-gray-300 text-sm text-gray-800 rounded-full font-semibold hover:bg-gray-400 transition"
               >
-                Logout
+                Post
               </button>
             </>
           ) : (

@@ -17,6 +17,13 @@ export default function NewsCard({ article }) {
     ? format(new Date(updated_at), 'MMM dd, yyyy')
     : '';
 
+  // Fungsi hapus semua tag HTML dari content
+  const stripHtml = (html) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  };
+
   return (
     <Link to={`/articles/${slug}`} className="relative group h-full">
       <div className="bg-white rounded-2xl shadow hover:shadow-lg transition duration-300 w-auto h-full flex flex-col overflow-hidden">
@@ -45,7 +52,7 @@ export default function NewsCard({ article }) {
         <div className="flex-1 flex flex-col p-4">
           <h3 className="text-lg font-semibold mb-2 line-clamp-2">{name}</h3>
           <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-            {content?.slice(0, 120) || 'No content available'}...
+            {content ? `${stripHtml(content).slice(0, 120)}...` : 'No content available'}
           </p>
           <div className="mt-auto text-xs text-gray-500">{formattedDate}</div>
         </div>

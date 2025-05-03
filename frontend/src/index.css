@@ -17,6 +17,32 @@ body {
   animation: fadeIn 0.2s ease-out;
 }
 
+.is-editor-empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af; /* gray-400 */
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.editor-area:focus-within {
+  border-color: #3b82f6; /* blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* soft glow */
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.ProseMirror {
+  caret-color: #111827; /* Tailwind gray-900 */
+  animation: caret-blink 1s step-end infinite;
+}
+
+@keyframes caret-blink {
+  50% { caret-color: transparent; }
+}
+
+
 
 @media (max-width: 768px) {
   body{

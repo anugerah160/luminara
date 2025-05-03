@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('thumbnail')->nullable();
             $table->text('content');
-            $table->string('video')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('author_id')->constrained('users')->onDelete('cascade');
             $table->enum('is_featured', ['yes', 'no'])->default('no');
