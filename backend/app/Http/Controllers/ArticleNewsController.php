@@ -133,6 +133,18 @@ class ArticleNewsController extends Controller
     
         return response()->json($articles);
     }
+
+    public function myArticles()
+    {
+        $userId = auth()->id();
+
+        $articles = ArticleNews::with('category:id,name')
+            ->where('author_id', $userId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json($articles);
+    }
     
     
     

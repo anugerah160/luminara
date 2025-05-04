@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../services/api';
+import { loginUser } from '../services/userService';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -13,8 +13,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await api.post('/login', form);
-      const { access_token, user } = res.data;
+      const { access_token, user } = await loginUser(form);
 
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -27,13 +26,16 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Masuk ke Akun Anda</h2>
+        <h2 className="text-2xl font-bold text-center mb-6 text-black-600">Masuk ke Akun Anda</h2>
+
+        {error && <p className="text-red-500 text-sm text-center mb-3">{error}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
             name="email"
             placeholder="Email"
-            className="w-full border px-4 py-2 rounded-lg"
+            className="w-full border px-4 py-2 rounded-lg focus:border-blue-600"
             value={form.email}
             onChange={handleChange}
             required
@@ -42,21 +44,24 @@ export default function Login() {
             type="password"
             name="password"
             placeholder="Password"
-            className="w-full border px-4 py-2 rounded-lg"
+            className="w-full border px-4 py-2 rounded-lg focus:border-blue-600"
             value={form.password}
             onChange={handleChange}
             required
           />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
           >
             Masuk
           </button>
         </form>
+
         <p className="text-sm text-center mt-4">
-          Belum punya akun? <Link to="/register" className="text-blue-600 hover:underline">Daftar sekarang</Link>
+          Belum punya akun?{' '}
+          <Link to="/register" className="text-orange-600 hover:underline font-medium">
+            Daftar sekarang
+          </Link>
         </p>
       </div>
     </div>

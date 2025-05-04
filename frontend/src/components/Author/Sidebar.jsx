@@ -1,31 +1,24 @@
-import React from 'react';
+import { NavLink } from 'react-router-dom';
 
-export default function AuthorSidebar({ selectedMenu, setSelectedMenu }) {
-  const menuItems = [
-    { key: 'profile', label: 'Profile' },
-    { key: 'post', label: 'Post Article' },
-    { key: 'manage', label: 'Manage Articles' },
-  ];
+export default function Sidebar() {
+  const linkClasses = ({ isActive }) =>
+    `flex items-center px-4 py-2 rounded-lg transition ${
+      isActive
+        ? 'bg-orange-100 text-orange-600 font-semibold'
+        : 'text-gray-700 hover:bg-gray-100'
+    }`;
 
   return (
-    <aside className="w-64 bg-white p-6 shadow-md h-screen sticky top-20">
-      <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
-      <ul className="space-y-2">
-        {menuItems.map((item) => (
-          <li key={item.key}>
-            <button
-              onClick={() => setSelectedMenu(item.key)}
-              className={`w-full text-left px-3 py-2 rounded ${
-                selectedMenu === item.key
-                  ? 'bg-blue-100 text-blue-700 font-medium'
-                  : 'hover:bg-gray-100'
-              }`}
-            >
-              {item.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </aside>
+    <div className="w-64 bg-white shadow-md p-4 space-y-2">
+      <NavLink to="/author/profile" className={linkClasses}>
+        👤 <span className="ml-2">Profile</span>
+      </NavLink>
+      <NavLink to="/author/post-article" className={linkClasses}>
+        ✍️ <span className="ml-2">Post Article</span>
+      </NavLink>
+      <NavLink to="/author/manage-articles" className={linkClasses}>
+        🛠 <span className="ml-2">Manage Articles</span>
+      </NavLink>
+    </div>
   );
 }
