@@ -48,16 +48,7 @@ export const deleteArticle = async (id) => {
   return res.data;
 };
 
-
-export async function updateArticle(id, data) {
-  const res = await fetch(`/api/articles/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Failed to update article');
-  return res.json();
-}
+export const updateArticle = async (id, data) => {
+  const res = await api.put(`/articles/${id}`, data);
+  return res.data;
+};
