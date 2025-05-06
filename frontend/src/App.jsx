@@ -15,7 +15,7 @@ import EditArticle from './components/Author/EditArticle';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/luminara">
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />        

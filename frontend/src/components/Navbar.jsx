@@ -45,12 +45,18 @@ export default function Navbar() {
         <div className="flex items-center space-x-3">
           {user ? (
             <>
-              <span className="text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
-                👋 {user.name}
-              </span>
               <button
                 onClick={() => navigate('/author/profile')}
-                className="px-4 py-2 bg-gray-300 text-sm text-gray-800 rounded-full font-semibold hover:bg-gray-400 transition"
+                className="px-4 py-2 bg-blue-300 text-sm text-gray-800 rounded-full font-semibold hover:bg-gray-400 transition"
+              >
+                👋 {user.name}
+              </button>
+              {/* <span className="text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
+                👋 {user.name}
+              </span> */}
+              <button
+                onClick={() => navigate('/author/post-article')}
+                className="px-4 py-2 bg-orange-300 text-sm text-gray-800 rounded-full font-semibold hover:bg-gray-400 transition"
               >
                 Post
               </button>
