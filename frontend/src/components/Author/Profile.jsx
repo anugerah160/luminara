@@ -20,7 +20,7 @@ export default function Profile() {
 
       <div className="flex items-center gap-6 mb-6">
         <img
-          src={user?.picture}
+          src={'/luminara/default.png'}
           alt="Profile"
           className="w-28 h-28 rounded-full object-cover border-4 border-orange-200"
         />
