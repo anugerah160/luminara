@@ -1,69 +1,104 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { loginUser } from '../services/userService';
+import React, { useState } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { loginUser } from "../services/userService"
+import { FaSpinner } from "react-icons/fa"
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setError('');
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
     try {
-      const { access_token, user } = await loginUser(form);
+      // Panggil API login
+      const response = await loginUser({ email, password })
 
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
-      navigate('/');
+      // Simpan token DAN seluruh objek user ke localStorage
+      localStorage.setItem("token", response.token)
+      localStorage.setItem("user", JSON.stringify(response.user))
+
+      // Arahkan ke halaman profil setelah berhasil
+      navigate("/author/profile")
     } catch (err) {
-      setError('Email atau password salah.');
+      const errorMsg =
+        err.response?.data?.message ||
+        "Failed to login. Please check your credentials."
+      setError(errorMsg)
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full">
-        <h2 className="text-2xl font-bold text-center mb-6 text-black-600">Masuk ke Akun Anda</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="p-8 bg-white rounded-lg shadow-xl w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-orange-600">
+          Welcome Back!
+        </h2>
+        <p className="text-center text-gray-500 mt-2">
+          Login to your Luminara account
+        </p>
 
-        {error && <p className="text-red-500 text-sm text-center mb-3">{error}</p>}
+        <form onSubmit={handleLogin} className="mt-8 space-y-6">
+          {error && (
+            <p className="text-sm text-center text-red-600 bg-red-50 p-3 rounded-lg">
+              {error}
+            </p>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="w-full border px-4 py-2 rounded-lg focus:border-blue-600"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full border px-4 py-2 rounded-lg focus:border-blue-600"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              required
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+            disabled={loading}
+            className="w-full flex justify-center py-3 px-4 text-white bg-orange-500 rounded-lg hover:bg-orange-600 font-semibold transition disabled:bg-orange-300"
           >
-            Masuk
+            {loading ? <FaSpinner className="animate-spin" /> : "Login"}
           </button>
-        </form>
 
-        <p className="text-sm text-center mt-4">
-          Belum punya akun?{' '}
-          <Link to="/register" className="text-orange-600 hover:underline font-medium">
-            Daftar sekarang
-          </Link>
-        </p>
+          <p className="text-center text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="font-medium text-orange-600 hover:underline"
+            >
+              Register here
+            </Link>
+          </p>
+        </form>
       </div>
     </div>
-  );
+  )
 }
