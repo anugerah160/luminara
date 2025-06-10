@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ArticleNews;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleNewsController extends Controller
 {
@@ -40,15 +41,25 @@ class ArticleNewsController extends Controller
     
     public function store(Request $request)
     {
+        // Validasi, pastikan thumbnail adalah gambar dan wajib
         $validated = $request->validate([
             'name' => 'required|string',
-            'thumbnail' => 'nullable|string',
+            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'content' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'is_featured' => 'in:yes,no',
         ]);
 
         $validated['author_id'] = auth()->id();
+
+        if ($request->hasFile('thumbnail')) {
+            $path = $request->file('thumbnail')->store('thumbnails', 'public');
+
+            // 2. Simpan path relatif ke database (contoh: 'thumbnails/namafile.jpg')
+            //    Bukan URL lengkap, karena accessor di model akan menanganinya.
+            $validated['thumbnail'] = '/storage/' . $path;
+            // ==========================================================
+        }
 
         $article = ArticleNews::create($validated);
         return response()->json($article, 201);
@@ -64,11 +75,24 @@ class ArticleNewsController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string',
-            'thumbnail' => 'nullable|string',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Diubah, nullable jika tidak ingin mengganti
             'content' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'is_featured' => 'in:yes,no',
         ]);
+
+        if ($request->hasFile('thumbnail')) {
+            // Hapus thumbnail lama jika ada
+            if ($article->thumbnail) {
+                Storage::delete(str_replace('/storage', 'public', $article->thumbnail));
+            }
+            $path = $request->file('thumbnail')->store('public/thumbnails');
+            $validated['thumbnail'] = Storage::url($path);
+        } else {
+            // Tetap gunakan thumbnail lama jika tidak ada file baru yang diunggah
+            $validated['thumbnail'] = $article->thumbnail;
+        }
+
 
         $article->update($validated);
         return response()->json($article);
@@ -80,6 +104,11 @@ class ArticleNewsController extends Controller
 
         if ($article->author_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Hapus thumbnail dari storage
+        if ($article->thumbnail) {
+            Storage::delete(str_replace('/storage', 'public', $article->thumbnail));
         }
 
         $article->delete();
@@ -145,7 +174,4 @@ class ArticleNewsController extends Controller
 
         return response()->json($articles);
     }
-    
-    
-    
 }

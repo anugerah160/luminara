@@ -104,7 +104,7 @@ export default function EditProfile() {
     }
 
     const data = new FormData()
-    data.append("_method", "PUT")
+    // data.append("_method", "PUT")
 
     data.append("name", formData.name)
     data.append("email", formData.email)
