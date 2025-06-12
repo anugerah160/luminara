@@ -4,6 +4,17 @@ export const getAllArticles = async () => {
   const res = await api.get("/articles")
   return res.data
 }
+
+export const getFeaturedArticles = async () => {
+    try {
+        const response = await api.get("/articles", { params: { is_featured: 'yes', limit: 5 } });
+        return response.data.slice(0, 5); 
+    } catch (error) {
+        console.error("Error fetching featured articles:", error);
+        throw error;
+    }
+};
+
 export const getArticleBySlug = async (slug) => {
   const res = await api.get(`/articles/${slug}`)
   return res.data

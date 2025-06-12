@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { getArticleBySlug, updateArticle } from "../../services/articleService"
 import { getAllCategories } from "../../services/categoryService"
 import RichTextEditor from "./RichTextEditor"
-import { FaEdit, FaCloudUploadAlt } from "react-icons/fa"
+import { FaEdit, FaCloudUploadAlt, FaLink, FaTrashAlt } from "react-icons/fa"
 import AuthorCard from "./AuthorCard"
 import LoadingSpinner from "./LoadingSpinner"
 
@@ -14,6 +14,8 @@ export default function EditArticle() {
   const [articleId, setArticleId] = useState(null)
   const [title, setTitle] = useState("")
   const [thumbnailFile, setThumbnailFile] = useState(null)
+  const [thumbnailUrl, setThumbnailUrl] = useState("")
+  const [currentThumbnailFromDb, setCurrentThumbnailFromDb] = useState("");
   const [preview, setPreview] = useState("")
   const [categoryId, setCategoryId] = useState("")
   const [isFeatured, setIsFeatured] = useState("no")
@@ -21,8 +23,10 @@ export default function EditArticle() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
+  const [thumbnailInputType, setThumbnailInputType] = useState('file');
+  const [shouldRemoveThumbnail, setShouldRemoveThumbnail] = useState(false);
 
-  // useEffect ini sudah benar dan akan bekerja dengan service yang diperbaiki.
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
@@ -33,7 +37,26 @@ export default function EditArticle() {
         ])
         setArticleId(article.id)
         setTitle(article.name)
-        setPreview(article.thumbnail || "")
+        
+        setCurrentThumbnailFromDb(article.thumbnail || "");
+        setPreview(article.thumbnail || "");
+
+        if (article.thumbnail && (article.thumbnail.startsWith('http://') || article.thumbnail.startsWith('https://'))) {
+          setThumbnailUrl(article.thumbnail);
+          setThumbnailInputType('url');
+          setThumbnailFile(null);
+        } else if (article.thumbnail) {
+          setThumbnailFile(null);
+          setThumbnailUrl("");
+          setThumbnailInputType('file');
+        } else {
+          setThumbnailFile(null);
+          setThumbnailUrl("");
+          setPreview(""); // Pastikan preview kosong jika tidak ada thumbnail
+          setThumbnailInputType('file');
+        }
+        setShouldRemoveThumbnail(false); // Reset this on load
+
         setCategoryId(article.category_id)
         setIsFeatured(article.is_featured)
         setContent(article.content)
@@ -52,28 +75,63 @@ export default function EditArticle() {
     const file = e.target.files[0]
     if (file) {
       setThumbnailFile(file)
+      setThumbnailUrl("") // Clear URL if file is selected
       setPreview(URL.createObjectURL(file))
+      setShouldRemoveThumbnail(false); // Jika upload file, batalkan niat hapus
+    } else {
+      setThumbnailFile(null);
+      // Jika input file dikosongkan, kembali ke thumbnail DB jika ada, atau kosongkan
+      setPreview(currentThumbnailFromDb || "");
     }
   }
 
-  // Fungsi ini juga sudah benar dan akan memanggil service yang telah kita perbaiki.
+  const handleUrlChange = (e) => {
+    const url = e.target.value;
+    setThumbnailUrl(url);
+    setThumbnailFile(null); // Clear file if URL is entered
+    setPreview(url); // Set preview to the URL
+    setShouldRemoveThumbnail(false); // Jika mengisi URL, batalkan niat hapus
+    // Jika URL dikosongkan, kembali ke thumbnail DB jika ada
+    if (!url) {
+      setPreview(currentThumbnailFromDb || "");
+    }
+  }
+
+  const handleRemoveThumbnail = () => {
+    if (window.confirm("Are you sure you want to remove the thumbnail?")) {
+      setThumbnailFile(null);
+      setThumbnailUrl("");
+      setPreview(""); // Kosongkan preview
+      setShouldRemoveThumbnail(true); // Set flag untuk dihapus di backend
+      setThumbnailInputType('file'); // Default ke input file setelah dihapus
+    }
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault() // Best practice
+    e.preventDefault() 
     if (!title || !categoryId || !content) {
       alert("Please fill out all required fields.")
       return
     }
+
     setUpdating(true)
 
     const formData = new FormData()
-    // formData.append("_method", "PUT")
     formData.append("name", title)
     formData.append("content", content)
     formData.append("category_id", categoryId)
     formData.append("is_featured", isFeatured)
-    if (thumbnailFile) {
-      formData.append("thumbnail", thumbnailFile)
-    }
+    
+    // Logika pengiriman thumbnail
+    if (shouldRemoveThumbnail) {
+        formData.append("should_remove_thumbnail", true);
+        formData.append("thumbnail", ""); // Kirim kosong juga untuk memastikan
+        formData.append("thumbnail_url", ""); // Kirim kosong juga untuk memastikan
+    } else if (thumbnailInputType === 'file' && thumbnailFile) {
+        formData.append("thumbnail", thumbnailFile);
+    } else if (thumbnailInputType === 'url' && thumbnailUrl) {
+        formData.append("thumbnail_url", thumbnailUrl);
+    } 
 
     try {
       await updateArticle(articleId, formData)
@@ -81,7 +139,16 @@ export default function EditArticle() {
       navigate("/author/manage-articles")
     } catch (err) {
       console.error("Failed to update article:", err)
-      alert("Failed to update article.")
+      if (err.response && err.response.data && err.response.data.errors) {
+          const errors = err.response.data.errors;
+          let errorMessage = "Failed to update article:\n";
+          for (const key in errors) {
+              errorMessage += `- ${errors[key].join(', ')}\n`;
+          }
+          alert(errorMessage);
+      } else {
+          alert("Failed to update article.");
+      }
     } finally {
       setUpdating(false)
     }
@@ -104,36 +171,115 @@ export default function EditArticle() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Thumbnail
             </label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Thumbnail Preview"
-                    className="mx-auto h-48 w-auto rounded-md"
-                  />
-                ) : (
-                  <FaCloudUploadAlt className="mx-auto h-12 w-12 text-gray-400" />
-                )}
-                <div className="flex text-sm text-gray-600 justify-center">
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none"
-                  >
-                    <span>Change image</span>
-                    <input
-                      id="file-upload"
-                      name="file-upload"
-                      type="file"
-                      className="sr-only"
-                      onChange={handleFileChange}
-                      accept="image/*"
-                    />
-                  </label>
-                </div>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
-              </div>
+            <div className="flex items-center space-x-4 mb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailInputType('file');
+                  // Saat beralih, jika tidak ada file baru/URL baru, gunakan preview dari DB
+                  if (!thumbnailFile && !thumbnailUrl && currentThumbnailFromDb) {
+                      setPreview(currentThumbnailFromDb);
+                  } else if (!thumbnailFile && !thumbnailUrl && !currentThumbnailFromDb) {
+                      setPreview(""); // Jika memang kosong dari awal
+                  }
+                  setThumbnailUrl(""); // Clear URL input saat beralih ke file
+                  setShouldRemoveThumbnail(false);
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  thumbnailInputType === 'file' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <FaCloudUploadAlt className="inline mr-2" /> Upload File
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailInputType('url');
+                  // Saat beralih, jika tidak ada file baru/URL baru, gunakan preview dari DB
+                  if (!thumbnailFile && !thumbnailUrl && currentThumbnailFromDb) {
+                    setPreview(currentThumbnailFromDb);
+                  } else if (!thumbnailFile && !thumbnailUrl && !currentThumbnailFromDb) {
+                    setPreview(""); // Jika memang kosong dari awal
+                  }
+                  // Jika URL sudah ada dari DB, set kembali ke input field
+                  if (currentThumbnailFromDb && (currentThumbnailFromDb.startsWith('http://') || currentThumbnailFromDb.startsWith('https://'))) {
+                      setThumbnailUrl(currentThumbnailFromDb);
+                  } else {
+                      setThumbnailUrl(""); // Kosongkan jika bukan URL
+                  }
+                  setThumbnailFile(null); // Clear file input saat beralih ke URL
+                  setShouldRemoveThumbnail(false);
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  thumbnailInputType === 'url' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <FaLink className="inline mr-2" /> Use URL
+              </button>
+              {/* Tombol Hapus Thumbnail */}
+              {(currentThumbnailFromDb || thumbnailFile || thumbnailUrl) && (
+                <button
+                  type="button"
+                  onClick={handleRemoveThumbnail}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700"
+                >
+                  <FaTrashAlt className="inline mr-2" /> Remove Thumbnail
+                </button>
+              )}
             </div>
+
+            {thumbnailInputType === 'file' ? (
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div className="space-y-1 text-center">
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt="Thumbnail Preview"
+                      className="mx-auto h-48 w-auto rounded-md"
+                    />
+                  ) : (
+                    <FaCloudUploadAlt className="mx-auto h-12 w-12 text-gray-400" />
+                  )}
+                  <div className="flex text-sm text-gray-600 justify-center">
+                    <label
+                      htmlFor="file-upload"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none"
+                    >
+                      <span>Change image</span>
+                      <input
+                        id="file-upload"
+                        name="file-upload"
+                        type="file"
+                        className="sr-only"
+                        onChange={handleFileChange}
+                        accept="image/*"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-1">
+                <input
+                  type="url"
+                  placeholder="Enter thumbnail URL (e.g., https://example.com/image.jpg)"
+                  value={thumbnailUrl}
+                  onChange={handleUrlChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+                />
+                {preview && (
+                  <div className="mt-4 text-center">
+                    <img
+                      src={preview}
+                      alt="Thumbnail Preview"
+                      className="mx-auto h-48 rounded-md border"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">Preview from URL</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <select

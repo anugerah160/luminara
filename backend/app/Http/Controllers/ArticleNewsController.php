@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ArticleNews;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str; // Import Str untuk menggunakan Str::slug
+use Illuminate\Support\Str;
 
 class ArticleNewsController extends Controller
 {
@@ -22,6 +22,11 @@ class ArticleNewsController extends Controller
 
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
+        }
+
+        // Tambahkan filter untuk artikel unggulan
+        if ($request->has('is_featured') && $request->is_featured === 'yes') {
+            $query->where('is_featured', 'yes');
         }
 
         return $query->orderByDesc('created_at')->get();
@@ -53,20 +58,26 @@ class ArticleNewsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'content' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'is_featured' => 'required|in:yes,no',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Untuk file upload
+            'thumbnail_url' => 'nullable|url|max:2048', // Untuk URL eksternal
         ]);
 
         $validated['author_id'] = auth()->id();
         $validated['slug'] = Str::slug($validated['name']);
 
-        // Simpan thumbnail dan dapatkan path relatifnya (misal: "thumbnails/namafile.jpg")
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('thumbnails', 'public');
-            $validated['thumbnail'] = $path; // Simpan path bersih ini ke database
+            $validated['thumbnail'] = $path;
+        } elseif ($request->filled('thumbnail_url')) {
+            $validated['thumbnail'] = $request->thumbnail_url;
+        } else {
+            $validated['thumbnail'] = null;
         }
+        
+        unset($validated['thumbnail_url']); 
 
         $article = ArticleNews::create($validated);
         return response()->json($article, 201);
@@ -77,45 +88,52 @@ class ArticleNewsController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // 1. Temukan artikel berdasarkan ID dari URL
         $articleNews = ArticleNews::findOrFail($id);
         
-        // 2. Validasi data yang masuk, sesuaikan dengan nama field dari frontend
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'content' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'is_featured' => 'required|in:yes,no',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Thumbnail opsional saat update
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'thumbnail_url' => 'nullable|url|max:2048',
+            'should_remove_thumbnail' => 'nullable|boolean',
         ]);
 
-        // 3. Update field pada model artikel
         $articleNews->name = $validatedData['name'];
         $articleNews->content = $validatedData['content'];
         $articleNews->category_id = $validatedData['category_id'];
         $articleNews->is_featured = $validatedData['is_featured'];
         $articleNews->slug = Str::slug($validatedData['name']);
 
-        // 4. Logika untuk menangani penggantian thumbnail
+        $oldThumbnailPath = $articleNews->getRawOriginal('thumbnail');
+        $isOldThumbnailExternalUrl = filter_var($oldThumbnailPath, FILTER_VALIDATE_URL);
+
         if ($request->hasFile('thumbnail')) {
-            // Hapus thumbnail lama jika ada
-            $oldThumbnailPath = $articleNews->getRawOriginal('thumbnail');
-            if ($oldThumbnailPath && Storage::disk('public')->exists($oldThumbnailPath)) {
+            if ($oldThumbnailPath && !$isOldThumbnailExternalUrl && Storage::disk('public')->exists($oldThumbnailPath)) {
                 Storage::disk('public')->delete($oldThumbnailPath);
             }
-
-            // Simpan thumbnail baru dan simpan path relatifnya
             $path = $request->file('thumbnail')->store('thumbnails', 'public');
             $articleNews->thumbnail = $path;
+        } 
+        elseif ($request->filled('thumbnail_url')) {
+            if ($oldThumbnailPath && !$isOldThumbnailExternalUrl && Storage::disk('public')->exists($oldThumbnailPath)) {
+                Storage::disk('public')->delete($oldThumbnailPath);
+            }
+            $articleNews->thumbnail = $request->thumbnail_url;
+        } 
+        elseif ($request->boolean('should_remove_thumbnail')) {
+            if ($oldThumbnailPath && !$isOldThumbnailExternalUrl && Storage::disk('public')->exists($oldThumbnailPath)) {
+                Storage::disk('public')->delete($oldThumbnailPath);
+            }
+            $articleNews->thumbnail = null;
         }
 
-        // 5. Simpan semua perubahan
         $articleNews->save();
 
-        // 6. Kembalikan respon dengan data terbaru
         return response()->json([
             'message' => 'Article updated successfully!',
-            'article' => $articleNews->fresh(), // Gunakan fresh() untuk data paling baru
+            'article' => $articleNews->fresh(),
         ]);
     }
 
@@ -130,9 +148,8 @@ class ArticleNewsController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Hapus thumbnail dari storage menggunakan path asli
         $thumbnailPath = $article->getRawOriginal('thumbnail');
-        if ($thumbnailPath && Storage::disk('public')->exists($thumbnailPath)) {
+        if ($thumbnailPath && !filter_var($thumbnailPath, FILTER_VALIDATE_URL) && Storage::disk('public')->exists($thumbnailPath)) {
             Storage::disk('public')->delete($thumbnailPath);
         }
 

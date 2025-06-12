@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react"
 import { postArticle } from "../../services/articleService"
 import { getAllCategories } from "../../services/categoryService"
 import RichTextEditor from "./RichTextEditor"
-import { FaPenNib, FaCloudUploadAlt } from "react-icons/fa"
+import { FaPenNib, FaCloudUploadAlt, FaLink } from "react-icons/fa"
 import AuthorCard from "./AuthorCard"
 import LoadingSpinner from "./LoadingSpinner"
 
 export default function PostArticle() {
   const [title, setTitle] = useState("")
-  const [thumbnail, setThumbnail] = useState(null)
+  const [thumbnailFile, setThumbnailFile] = useState(null)
+  const [thumbnailUrl, setThumbnailUrl] = useState("")
   const [preview, setPreview] = useState("")
   const [categoryId, setCategoryId] = useState("")
   const [isFeatured, setIsFeatured] = useState("no")
@@ -17,6 +18,8 @@ export default function PostArticle() {
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [agreed, setAgreed] = useState(false)
+  const [thumbnailInputType, setThumbnailInputType] = useState('file'); // 'file' or 'url'
+
 
   useEffect(() => {
     async function fetchCategories() {
@@ -35,14 +38,22 @@ export default function PostArticle() {
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      setThumbnail(file)
+      setThumbnailFile(file)
+      setThumbnailUrl("") // Clear URL if file is selected
       setPreview(URL.createObjectURL(file))
     }
   }
 
+  const handleUrlChange = (e) => {
+    const url = e.target.value;
+    setThumbnailUrl(url);
+    setThumbnailFile(null); // Clear file if URL is entered
+    setPreview(url); // Set preview to the URL
+  }
+
   const handleSubmit = async () => {
-    if (!title || !thumbnail || !categoryId || !content) {
-      alert("Please fill out Title, Thumbnail, Category, and Content.")
+    if (!title || !categoryId || !content || (!thumbnailFile && !thumbnailUrl)) {
+      alert("Please fill out Title, Category, Content, and provide a Thumbnail (file or URL).")
       return
     }
     if (!agreed) {
@@ -54,22 +65,31 @@ export default function PostArticle() {
 
     const formData = new FormData()
     formData.append("name", title)
-    formData.append("thumbnail", thumbnail)
     formData.append("content", content)
     formData.append("category_id", categoryId)
     formData.append("is_featured", isFeatured)
+
+    // Masukkan thumbnail ke FormData berdasarkan jenis input yang dipilih
+    if (thumbnailInputType === 'file' && thumbnailFile) {
+        formData.append("thumbnail", thumbnailFile); // Gunakan kunci 'thumbnail' untuk file
+    } else if (thumbnailInputType === 'url' && thumbnailUrl) {
+        formData.append("thumbnail_url", thumbnailUrl); // Gunakan kunci 'thumbnail_url' untuk URL
+    }
+
 
     try {
       await postArticle(formData)
       alert("Article posted successfully!")
       // Reset form
       setTitle("")
-      setThumbnail(null)
+      setThumbnailFile(null)
+      setThumbnailUrl("")
       setPreview("")
       setCategoryId("")
       setIsFeatured("no")
       setContent("")
       setAgreed(false)
+      setThumbnailInputType('file'); // Reset input type
     } catch (err) {
       console.error("Post failed:", err)
       alert("Failed to post article. Check console for details.")
@@ -95,37 +115,96 @@ export default function PostArticle() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Thumbnail (Required)
             </label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Thumbnail Preview"
-                    className="mx-auto h-48 rounded-md"
-                  />
-                ) : (
-                  <FaCloudUploadAlt className="mx-auto h-12 w-12 text-gray-400" />
-                )}
-                <div className="flex text-sm text-gray-600">
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
-                  >
-                    <span>Upload a file</span>
-                    <input
-                      id="file-upload"
-                      name="file-upload"
-                      type="file"
-                      className="sr-only"
-                      onChange={handleFileChange}
-                      accept="image/*"
-                    />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
-              </div>
+            <div className="flex items-center space-x-4 mb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailInputType('file');
+                  setThumbnailUrl(''); // Clear URL if switching to file upload
+                  // Jika ada file lama, biarkan previewnya, tapi jika tidak ada file, clear preview
+                  if (!thumbnailFile) setPreview('');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  thumbnailInputType === 'file' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <FaCloudUploadAlt className="inline mr-2" /> Upload File
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailInputType('url');
+                  setThumbnailFile(null); // Clear file if switching to URL input
+                  // Jika ada URL lama, biarkan previewnya, tapi jika tidak ada URL, clear preview
+                  if (!thumbnailUrl) setPreview('');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  thumbnailInputType === 'url' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <FaLink className="inline mr-2" /> Use URL
+              </button>
             </div>
+
+            {thumbnailInputType === 'file' ? (
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div className="space-y-1 text-center">
+                  {preview && !thumbnailFile && !thumbnailUrl ? ( // Only show if an old URL is set
+                    <img
+                      src={preview}
+                      alt="Current Thumbnail"
+                      className="mx-auto h-48 rounded-md"
+                    />
+                  ) : preview && (thumbnailFile || thumbnailUrl) ? (
+                    <img
+                      src={preview}
+                      alt="Thumbnail Preview"
+                      className="mx-auto h-48 rounded-md"
+                    />
+                  ) : (
+                    <FaCloudUploadAlt className="mx-auto h-12 w-12 text-gray-400" />
+                  )}
+                  <div className="flex text-sm text-gray-600">
+                    <label
+                      htmlFor="file-upload"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+                    >
+                      <span>Upload a file</span>
+                      <input
+                        id="file-upload"
+                        name="file-upload"
+                        type="file"
+                        className="sr-only"
+                        onChange={handleFileChange}
+                        accept="image/*"
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-1">
+                <input
+                  type="url"
+                  placeholder="Enter thumbnail URL (e.g., https://example.com/image.jpg)"
+                  value={thumbnailUrl}
+                  onChange={handleUrlChange}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+                />
+                {preview && (
+                  <div className="mt-4 text-center">
+                    <img
+                      src={preview}
+                      alt="Thumbnail Preview"
+                      className="mx-auto h-48 rounded-md border"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">Preview from URL</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <select

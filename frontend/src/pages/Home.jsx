@@ -4,7 +4,6 @@ import CategoryBar from '../components/CategoryBar';
 import FeaturedNews from '../components/FeaturedNews';
 import NewsCard from '../components/NewsCard';
 import AuthorList from "../components/AuthorList";
-// import AdBanner from "../components/AdBanner";
 import LatestForYou from "../components/LatestForYou";
 import Footer from "../components/Footer";
 import { getAllArticles } from '../services/articleService';
