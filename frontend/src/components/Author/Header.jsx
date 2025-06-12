@@ -1,50 +1,63 @@
-import React, { useState, useEffect } from "react"
-import { useLocation, useNavigate, NavLink } from "react-router-dom"
-import { FaSignOutAlt, FaUserCircle } from "react-icons/fa"
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, NavLink } from "react-router-dom";
+import { FaSignOutAlt, FaUserCircle, FaBars } from "react-icons/fa";
 
-export default function Header() {
-  const [user, setUser] = useState(null)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
+export default function Header({ toggleSidebar }) {
+  const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const updateUserFromStorage = () => {
-      const storedUser = JSON.parse(localStorage.getItem("user"))
-      setUser(storedUser)
-    }
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      setUser(storedUser);
+    };
 
-    updateUserFromStorage()
-    window.addEventListener("storage", updateUserFromStorage)
+    updateUserFromStorage();
+    window.addEventListener("storage", updateUserFromStorage);
     return () => {
-      window.removeEventListener("storage", updateUserFromStorage)
-    }
-  }, [])
+      window.removeEventListener("storage", updateUserFromStorage);
+    };
+  }, []);
 
   const handleLogout = () => {
-    localStorage.clear()
-    setDropdownOpen(false)
-    navigate("/login")
-    window.dispatchEvent(new Event("storage"))
-  }
+    localStorage.clear();
+    setDropdownOpen(false);
+    navigate("/login");
+    window.dispatchEvent(new Event("storage"));
+  };
 
   const getPageTitle = () => {
-    const path = location.pathname.split("/").pop().replace(/-/g, " ")
-    if (path === "author" || !path) return "Profile"
-    return path.replace(/\b\w/g, (char) => char.toUpperCase())
-  }
+    const path = location.pathname.split("/").pop().replace(/-/g, " ");
+    if(location.pathname.includes('/author/manage-articles/') && path !== 'manage articles') {
+      return "Edit Article";
+    }
+    if (path === "author" || !path) return "Profile";
+    return path.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   const handleImageError = (e) => {
-    e.target.onerror = null
-    e.target.src = "/images/default.png"
-  }
+    e.target.onerror = null;
+    e.target.src = "/images/default.png";
+  };
 
-  // REVISI: Gunakan URL gambar dari state user
-  const imageUrl = user?.picture || "/images/default.png"
+  const imageUrl = user?.picture || "/images/default.png";
 
   return (
     <header className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
-      <h1 className="text-2xl font-bold text-gray-800">{getPageTitle()}</h1>
+      <div className="flex items-center">
+        <button
+          onClick={toggleSidebar}
+          className="text-gray-600 focus:outline-none"
+          aria-label="Toggle sidebar"
+        >
+          <FaBars size={20} />
+        </button>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 ml-4">
+          {getPageTitle()}
+        </h1>
+      </div>
       <div className="relative">
         <button
           onClick={() => setDropdownOpen((prev) => !prev)}
@@ -54,8 +67,6 @@ export default function Header() {
             <span className="font-semibold text-gray-700">{user?.name}</span>
           </span>
           <img
-            // REVISI KUNCI: `key` unik memaksa React me-render ulang elemen <img>
-            // dan `?t=${Date.now()}` memaksa browser mengunduh gambar baru (cache-busting).
             key={imageUrl + user?.updated_at}
             src={`${imageUrl}?t=${new Date().getTime()}`}
             alt="User"
@@ -91,5 +102,5 @@ export default function Header() {
         )}
       </div>
     </header>
-  )
+  );
 }

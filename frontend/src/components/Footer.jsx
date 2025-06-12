@@ -3,7 +3,7 @@ import { FaInstagram, FaEnvelope } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer className="mt-20 bg-white border-t py-10 text-sm text-gray-700">
+    <footer className="mt-20 bg-white border-t py-10 text-sm text-gray-700 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         
         {/* Brand & Contact */}

@@ -4,8 +4,6 @@
 
 body {
   @apply bg-lightGray text-textGray font-sans;
-  /* place-items: center; */
-  padding: 0 100px;
 }
 
 @keyframes fadeIn {
@@ -42,12 +40,8 @@ body {
   50% { caret-color: transparent; }
 }
 
-
-
 @media (max-width: 768px) {
-  body{
-  /* place-items: center; */
-    padding: 0;
-    min-width: 420px;
+  body {
+    min-width: 320px;
   }
 }

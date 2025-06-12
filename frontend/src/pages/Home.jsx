@@ -37,7 +37,7 @@ export default function HomePage() {
   const currentItems = trendingArticles.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="bg-gray-50 text-gray-900">
+    <div className="bg-gray-50 text-gray-900 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <Navbar />
       <CategoryBar />
       <FeaturedNews />

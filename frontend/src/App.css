@@ -1,9 +1,5 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/* Styling yang membatasi #root dihapus agar layout bisa full-screen */
+/* Anda dapat menghapus semua isi file ini jika tidak ada style lain yang dibutuhkan */
 
 .logo {
   height: 6em;

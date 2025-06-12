@@ -40,7 +40,7 @@ export default function DetailArticle() {
   return (
     <div className="bg-white text-gray-900">
       <Navbar />
-      <CategoryBar />
+      {/* <CategoryBar /> */}
 
       {/* Meta Info */}
       <div className="max-w-7xl mx-auto px-6 mt-6 text-sm text-gray-500 flex justify-between items-center">

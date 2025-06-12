@@ -57,7 +57,7 @@ export default function Comment({ articleId }) {
   };
 
   return (
-    <div className="mt-10">
+    <div className="mt-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h3 className="text-lg font-semibold mb-4">Comments</h3>
 
       {/* Comment Form */}

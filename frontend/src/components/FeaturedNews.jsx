@@ -67,7 +67,7 @@ export default function FeaturedNews() {
   const currentArticle = featuredArticles[currentIndex]
 
   return (
-    <section className="relative w-full h-[500px] overflow-hidden group">
+    <section className="relative w-full h-[500px] overflow-hidden group ">
       {/* Container untuk slide, akan bergerak */}
       <div
         className="absolute inset-0 flex transition-transform ease-out duration-1000"
