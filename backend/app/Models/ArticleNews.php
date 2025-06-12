@@ -24,7 +24,7 @@ class ArticleNews extends Model
         'author_id',
         'is_featured'
     ];
-    
+
     protected $appends = ['share_links'];
 
     /**
@@ -55,14 +55,21 @@ class ArticleNews extends Model
     {
         return Attribute::make(
             get: function ($value) {
-                if ($value) {
-                    return Storage::disk('public')->url($value);
+                if (!$value) {
+                    return null; // Atau default placeholder jika tidak ada thumbnail
                 }
-                return null;
+
+                // Cek apakah nilai sudah merupakan URL lengkap
+                if (filter_var($value, FILTER_VALIDATE_URL)) {
+                    return $value; // Jika ya, kembalikan langsung URL tersebut
+                }
+
+                // Jika tidak, asumsikan itu adalah path storage lokal dan buat URL-nya
+                return Storage::disk('public')->url($value);
             }
         );
     }
-    
+
     public function getShareLinksAttribute(): array
     {
         // Ambil URL frontend dari .env, jika tidak ada gunakan localhost:5173 sebagai default
