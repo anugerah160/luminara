@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Articles
     Route::get('/my-articles', [ArticleNewsController::class, 'myArticles']);
     Route::post('/articles', [ArticleNewsController::class, 'store']);
-    Route::put('/articles/{id}', [ArticleNewsController::class, 'update']);
+    Route::post('/articles/{id}', [ArticleNewsController::class, 'update']);
     Route::delete('/articles/{id}', [ArticleNewsController::class, 'destroy']);
 
     // Users (Admin only)

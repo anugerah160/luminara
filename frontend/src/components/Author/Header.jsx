@@ -2,29 +2,11 @@ import React, { useState, useEffect } from "react"
 import { useLocation, useNavigate, NavLink } from "react-router-dom"
 import { FaSignOutAlt, FaUserCircle } from "react-icons/fa"
 
-// Ambil URL API dari environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-// Buat URL Aset dengan menghapus '/api' dari URL API
-const ASSET_URL = API_BASE_URL.replace("/api", "")
-
 export default function Header() {
   const [user, setUser] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-
-  // Fungsi untuk membuat URL gambar yang absolut dan benar
-  const getPictureUrl = (picturePath) => {
-    if (
-      !picturePath ||
-      picturePath === "default.png" ||
-      !picturePath.startsWith("/storage")
-    ) {
-      return "/images/default.png" // Fallback ke gambar default di /public/images
-    }
-    // Gabungkan URL ASET dengan path gambar
-    return `${ASSET_URL}${picturePath}`
-  }
 
   useEffect(() => {
     const updateUserFromStorage = () => {
@@ -37,11 +19,13 @@ export default function Header() {
     return () => {
       window.removeEventListener("storage", updateUserFromStorage)
     }
-  }, [location])
+  }, [])
 
   const handleLogout = () => {
     localStorage.clear()
+    setDropdownOpen(false)
     navigate("/login")
+    window.dispatchEvent(new Event("storage"))
   }
 
   const getPageTitle = () => {
@@ -49,6 +33,14 @@ export default function Header() {
     if (path === "author" || !path) return "Profile"
     return path.replace(/\b\w/g, (char) => char.toUpperCase())
   }
+
+  const handleImageError = (e) => {
+    e.target.onerror = null
+    e.target.src = "/images/default.png"
+  }
+
+  // REVISI: Gunakan URL gambar dari state user
+  const imageUrl = user?.picture || "/images/default.png"
 
   return (
     <header className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">
@@ -62,13 +54,13 @@ export default function Header() {
             <span className="font-semibold text-gray-700">{user?.name}</span>
           </span>
           <img
-            src={user ? getPictureUrl(user.picture) : "/images/default.png"}
+            // REVISI KUNCI: `key` unik memaksa React me-render ulang elemen <img>
+            // dan `?t=${Date.now()}` memaksa browser mengunduh gambar baru (cache-busting).
+            key={imageUrl + user?.updated_at}
+            src={`${imageUrl}?t=${new Date().getTime()}`}
             alt="User"
             className="w-11 h-11 rounded-full object-cover border-2 border-orange-400 p-0.5"
-            onError={(e) => {
-              e.target.onerror = null
-              e.target.src = "/images/default.png"
-            }}
+            onError={handleImageError}
           />
         </button>
         {dropdownOpen && (
@@ -85,16 +77,15 @@ export default function Header() {
             <NavLink
               to="/author/profile"
               className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setDropdownOpen(false)}
             >
-              <FaUserCircle className="mr-3 text-gray-400" />
-              My Profile
+              <FaUserCircle className="mr-3 text-gray-400" /> My Profile
             </NavLink>
             <button
               onClick={handleLogout}
               className="w-full text-left flex items-center px-4 py-3 text-sm text-red-600 hover:bg-gray-100"
             >
-              <FaSignOutAlt className="mr-3" />
-              Logout
+              <FaSignOutAlt className="mr-3" /> Logout
             </button>
           </div>
         )}

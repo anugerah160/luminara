@@ -2,91 +2,44 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-// Illuminate\Support\Facades\URL; // 'asset()' helper is globally available
 
 class ArticleNews extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name', 'slug', 'thumbnail', 'content',
-        'category_id', 'author_id', 'is_featured'
-    ];
+    use HasFactory;
 
     /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
+     * The attributes that are mass assignable.
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'thumbnail',
+        'content',
+        'category_id',
+        'author_id',
+        'is_featured'
+    ];
+    
+    /**
+     * REVISI: Selalu tambahkan 'share_links' saat model diubah menjadi JSON.
      */
     protected $appends = ['share_links'];
 
     /**
-     * Boot the model.
-     */
-    protected static function booted()
-    {
-        static::creating(function ($article) {
-            $article->slug = static::generateUniqueSlug($article->name);
-        });
-
-        static::updating(function ($article) {
-            if ($article->isDirty('name')) {
-                $article->slug = static::generateUniqueSlug($article->name, $article->id);
-            }
-        });
-    }
-
-    /**
-     * Generate a unique slug for the article.
-     */
-    protected static function generateUniqueSlug($name, $ignoreId = null)
-    {
-        $slug = Str::slug($name);
-        $originalSlug = $slug;
-        $counter = 1;
-
-        while (static::where('slug', $slug)
-                    ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
-                    ->exists()) {
-            $slug = $originalSlug . '-' . $counter++;
-        }
-
-        return $slug;
-    }
-
-    // =================================================================
-    // ## Perubahan Kunci di Sini: Accessor untuk Thumbnail ##
-    //
-    // Fungsi ini akan secara otomatis mengubah path thumbnail menjadi
-    // URL absolut yang bisa diakses oleh frontend.
-    // =================================================================
-    public function getThumbnailAttribute($value)
-    {
-        // Jika value sudah merupakan URL lengkap, jangan diubah
-        if (filter_var($value, FILTER_VALIDATE_URL)) {
-            return $value;
-        }
-
-        // Jika value adalah path (dimulai dengan /storage/),
-        // gunakan helper asset() untuk membuat URL lengkap
-        return $value ? asset($value) : null;
-    }
-    
-    /**
-     * Get the category that owns the article.
+     * Relationship with Category.
      */
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Category::class);
     }
 
     /**
-     * Get the author that owns the article.
+     * Relationship with User (Author).
      */
     public function author()
     {
@@ -94,33 +47,51 @@ class ArticleNews extends Model
     }
 
     /**
-     * Get the comments for the article.
+     * Relationship with Comment.
      */
     public function comments()
     {
         return $this->hasMany(Comment::class, 'article_id');
     }
+
+    /**
+     * REVISI KUNCI 1: Accessor untuk atribut 'thumbnail'.
+     *
+     * Ini akan mengubah path gambar (misal: "thumbnails/file.jpg")
+     * menjadi URL lengkap yang benar (misal: "http://.../storage/thumbnails/file.jpg").
+     */
+    protected function thumbnail(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                // Jika ada path gambar, buat URL lengkap menggunakan disk 'public'.
+                if ($value) {
+                    return Storage::disk('public')->url($value);
+                }
+                // Jika tidak, kembalikan null agar frontend bisa menanganinya.
+                return null;
+            }
+        );
+    }
     
     /**
-     * Get the media for the article.
+     * REVISI KUNCI 2: Accessor untuk membuat link share.
+     *
+     * Ini akan menghasilkan link share dengan format URL frontend yang benar.
      */
-    public function media()
+    public function getShareLinksAttribute(): array
     {
-        return $this->hasMany(Media::class, 'article_id');
-    }
-
-    /**
-     * Get the shareable links for the article.
-     */
-    public function getShareLinksAttribute()
-    {
-        $url = url('/artikel/' . $this->slug); // frontend URL
+        // Ambil URL frontend dari .env, jika tidak ada gunakan localhost:5173 sebagai default
+        $frontendUrl = rtrim(config('app.frontend_url', 'http://localhost:5173'), '/');
+        $articleUrl = $frontendUrl . '/articles/' . $this->slug;
+        $encodedUrl = urlencode($articleUrl);
+        $encodedTitle = urlencode($this->name);
 
         return [
-            'whatsapp' => 'https://wa.me/?text=' . urlencode($this->name . ' ' . $url),
-            'facebook' => 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($url),
-            'twitter'  => 'https://twitter.com/intent/tweet?url=' . urlencode($url) . '&text=' . urlencode($this->name),
-            'linkedin' => 'https://www.linkedin.com/sharing/share-offsite/?url=' . urlencode($url),
+            'whatsapp' => "https://wa.me/?text={$encodedTitle}+{$encodedUrl}",
+            'facebook' => "https://www.facebook.com/sharer/sharer.php?u={$encodedUrl}",
+            'twitter' => "https://twitter.com/intent/tweet?url={$encodedUrl}&text={$encodedTitle}",
+            'linkedin' => "https://www.linkedin.com/sharing/share-offsite/?url={$encodedUrl}",
         ];
     }
 }

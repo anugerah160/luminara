@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   FaUser,
@@ -9,12 +9,8 @@ import {
 } from "react-icons/fa"
 import AuthorCard from "./AuthorCard"
 import { getMyArticles } from "../../services/articleService"
+import { getUserById } from "../../services/userService"
 import LoadingSpinner from "./LoadingSpinner"
-
-// Ambil URL API dari environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-// Buat URL Aset dengan menghapus '/api' dari URL API
-const ASSET_URL = API_BASE_URL.replace("/api", "")
 
 export default function Profile() {
   const navigate = useNavigate()
@@ -22,44 +18,47 @@ export default function Profile() {
   const [articleCount, setArticleCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // Fungsi untuk membuat URL gambar yang absolut dan benar
-  const getPictureUrl = (picturePath) => {
-    if (
-      !picturePath ||
-      picturePath === "default.png" ||
-      !picturePath.startsWith("/storage")
-    ) {
-      return "/images/default.png" // Fallback ke gambar default di frontend
-    }
-    // Gabungkan URL ASET dengan path gambar
-    return `${ASSET_URL}${picturePath}`
-  }
+  // Fetches fresh user data from the API.
+  const loadProfileData = useCallback(async () => {
+    const storedUser = JSON.parse(localStorage.getItem("user"))
 
-  useEffect(() => {
-    const loadProfileData = async () => {
-      setLoading(true)
-      const storedUser = JSON.parse(localStorage.getItem("user"))
+    if (storedUser?.id) {
+      try {
+        const freshUserData = await getUserById(storedUser.id)
+        setUser(freshUserData)
+        localStorage.setItem("user", JSON.stringify(freshUserData)) // Sync localStorage.
 
-      if (storedUser) {
-        setUser(storedUser)
-        try {
-          const articles = await getMyArticles()
-          setArticleCount(articles.length)
-        } catch (error) {
-          console.error("Failed to fetch article count", error)
-        }
-      } else {
+        const articles = await getMyArticles()
+        setArticleCount(articles.length)
+      } catch (error) {
+        console.error("Failed to fetch profile data:", error)
         navigate("/login")
       }
-      setLoading(false)
+    } else {
+      navigate("/login")
     }
+    setLoading(false)
+  }, [navigate])
 
+  useEffect(() => {
+    setLoading(true)
     loadProfileData()
-  }, [])
+
+    // Listens for updates.
+    window.addEventListener("storage", loadProfileData)
+    return () => {
+      window.removeEventListener("storage", loadProfileData)
+    }
+  }, [loadProfileData])
 
   const handleLogout = () => {
     localStorage.clear()
     navigate("/login")
+  }
+
+  const handleImageError = (e) => {
+    e.target.onerror = null
+    e.target.src = "/images/default.png"
   }
 
   if (loading || !user) {
@@ -70,17 +69,18 @@ export default function Profile() {
     )
   }
 
+  // REVISED: Use user.picture directly.
+  const imageUrl = user?.picture || "/images/default.png"
+
   return (
     <AuthorCard icon={<FaUser size={28} />} title="My Profile">
       <div className="text-center">
         <img
-          src={getPictureUrl(user.picture)}
+          key={imageUrl}
+          src={imageUrl}
           alt="Profile"
           className="w-36 h-36 rounded-full object-cover mx-auto mb-4 border-4 border-orange-200 shadow-xl"
-          onError={(e) => {
-            e.target.onerror = null
-            e.target.src = "/images/default.png"
-          }}
+          onError={handleImageError}
         />
         <h1 className="text-3xl font-bold text-gray-800">{user.name}</h1>
         <div className="flex items-center justify-center text-gray-500 mt-2">
@@ -100,13 +100,13 @@ export default function Profile() {
       <div className="mt-8 flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => navigate("/author/edit-profile")}
-          className="flex-1 flex items-center justify-center gap-2 w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-transform transform hover:scale-105"
+          className="flex-1 flex items-center justify-center gap-2 w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
         >
           <FaPen /> Edit Profile
         </button>
         <button
           onClick={handleLogout}
-          className="flex-1 flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-transform transform hover:scale-105"
+          className="flex-1 flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800"
         >
           <FaSignOutAlt /> Logout
         </button>

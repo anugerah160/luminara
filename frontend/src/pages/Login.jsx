@@ -22,8 +22,8 @@ export default function Login() {
       localStorage.setItem("token", response.token)
       localStorage.setItem("user", JSON.stringify(response.user))
 
-      // Arahkan ke halaman profil setelah berhasil
-      navigate("/author/profile")
+      // Arahkan ke halaman utama
+      navigate("/")
     } catch (err) {
       const errorMsg =
         err.response?.data?.message ||

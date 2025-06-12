@@ -14,64 +14,41 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'picture',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $fillable = ['name', 'email', 'password', 'picture'];
+    protected $hidden = ['password', 'remember_token'];
     protected function casts(): array
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed'];
     }
 
     /**
-     * Accessor untuk atribut 'picture'.
-     * Selalu mengubah path yang tersimpan di DB menjadi URL yang bisa diakses publik.
+     * FINAL REVISION: Accessor for the 'picture' attribute.
+     * This logic now correctly handles all path variations.
      */
     protected function picture(): Attribute
     {
         return Attribute::make(
             get: function ($value) {
-                // Jika value adalah path ke gambar default atau null/kosong
+                // 1. Handle null or default values.
                 if (!$value || $value === 'default.png') {
-                    // Kembalikan path ke gambar default yang ada di frontend/public
-                    // Ini adalah fallback jika tidak ada gambar
-                    return '/images/default.png';
+                    return asset('images/default.png');
                 }
 
-                // Jika value sudah merupakan URL lengkap (misalnya dari social login)
+                // 2. Handle if the value is already a full URL.
                 if (filter_var($value, FILTER_VALIDATE_URL)) {
                     return $value;
                 }
+                
+                // 3. IMPORTANT FIX: If the path from the database ALREADY starts
+                // with '/storage/', just prepend the base URL with asset().
+                // This prevents the double '/storage//storage/' issue.
+                if (str_starts_with($value, '/storage/')) {
+                    return asset($value);
+                }
 
-                // Jika value adalah path dari storage, buat URL lengkapnya
-                // Storage::url() akan menghasilkan /storage/pictures/file.jpg
-                return Storage::url($value);
+                // 4. For standard paths like 'public/pictures/file.jpg',
+                // convert it to a full URL.
+                return asset(Storage::url($value));
             }
         );
     }

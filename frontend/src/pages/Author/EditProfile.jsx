@@ -12,59 +12,38 @@ import {
 import AuthorCard from "../../components/Author/AuthorCard"
 import LoadingSpinner from "../../components/Author/LoadingSpinner"
 
-// Ambil URL API dari environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-// Buat URL Aset dengan menghapus '/api' dari URL API
-const ASSET_URL = API_BASE_URL.replace("/api", "")
-
 export default function EditProfile() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+  const [formData, setFormData] = useState({ name: "", email: "" })
+  const [passwordData, setPasswordData] = useState({
     password: "",
     password_confirmation: "",
   })
   const [pictureFile, setPictureFile] = useState(null)
   const [preview, setPreview] = useState("")
-
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  // Fungsi untuk membuat URL gambar yang absolut dan benar
-  const getPictureUrl = (picturePath) => {
-    if (
-      !picturePath ||
-      picturePath === "default.png" ||
-      !picturePath.startsWith("/storage")
-    ) {
-      return "/images/default.png"
-    }
-    return `${ASSET_URL}${picturePath}`
-  }
-
   useEffect(() => {
+    // Fetches initial data to populate the form.
     const fetchInitialData = async () => {
       setLoading(true)
       try {
         const storedUser = JSON.parse(localStorage.getItem("user"))
-        if (!storedUser) {
+        if (!storedUser?.id) {
           navigate("/login")
           return
         }
+
         const fullUser = await getUserById(storedUser.id)
         setUser(fullUser)
-        setFormData({
-          name: fullUser.name,
-          email: fullUser.email,
-          password: "",
-          password_confirmation: "",
-        })
-        setPreview(getPictureUrl(fullUser.picture))
+        setFormData({ name: fullUser.name, email: fullUser.email })
+        // REVISED: Use fullUser.picture for the initial preview.
+        setPreview(fullUser.picture)
       } catch (err) {
         setError("Failed to fetch user data.")
       } finally {
@@ -75,16 +54,20 @@ export default function EditProfile() {
   }, [navigate])
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    if (name === "password" || name === "password_confirmation") {
+      setPasswordData((prev) => ({ ...prev, [name]: value }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
       setPictureFile(file)
+      // Creates a temporary local URL for preview.
       setPreview(URL.createObjectURL(file))
-    } else {
-      setError("Please select a valid image file (e.g., PNG, JPG).")
     }
   }
 
@@ -92,26 +75,21 @@ export default function EditProfile() {
     e.preventDefault()
     setError("")
     setSuccess("")
-    setIsSubmitting(true)
-
     if (
-      formData.password &&
-      formData.password !== formData.password_confirmation
+      passwordData.password &&
+      passwordData.password !== passwordData.password_confirmation
     ) {
       setError("Passwords do not match.")
-      setIsSubmitting(false)
       return
     }
+    setIsSubmitting(true)
 
     const data = new FormData()
-    // data.append("_method", "PUT")
-
     data.append("name", formData.name)
     data.append("email", formData.email)
-
-    if (formData.password) {
-      data.append("password", formData.password)
-      data.append("password_confirmation", formData.password_confirmation)
+    if (passwordData.password) {
+      data.append("password", passwordData.password)
+      data.append("password_confirmation", passwordData.password_confirmation)
     }
     if (pictureFile) {
       data.append("picture", pictureFile)
@@ -119,24 +97,18 @@ export default function EditProfile() {
 
     try {
       const result = await updateUser(user.id, data)
+      // The result.user object now has the updated picture URL.
       localStorage.setItem("user", JSON.stringify(result.user))
       setSuccess("Profile updated successfully! Redirecting...")
 
-      setPreview(getPictureUrl(result.user.picture))
-      setPictureFile(null)
-
       setTimeout(() => {
-        window.dispatchEvent(new Event("storage"))
+        window.dispatchEvent(new Event("storage")) // Dispatch event to notify other components.
         navigate("/author/profile")
       }, 1500)
     } catch (err) {
-      const errorData = err.response?.data
-      if (errorData && errorData.errors) {
-        const firstError = Object.values(errorData.errors)[0][0]
-        setError(firstError)
-      } else {
-        setError(errorData?.message || "An unexpected error occurred.")
-      }
+      const message =
+        err.response?.data?.message || "An unexpected error occurred."
+      setError(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -152,23 +124,23 @@ export default function EditProfile() {
 
   return (
     <AuthorCard icon={<FaUserEdit size={28} />} title="Edit Profile">
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div
-            className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50"
+            className="p-4 text-sm text-red-800 rounded-lg bg-red-50"
             role="alert"
           >
-            <FaTimesCircle className="flex-shrink-0 inline w-5 h-5 mr-3" />
-            <span className="font-medium">{error}</span>
+            <FaTimesCircle className="inline w-5 h-5 mr-3" />
+            {error}
           </div>
         )}
         {success && (
           <div
-            className="flex items-center p-4 text-sm text-green-800 rounded-lg bg-green-50"
+            className="p-4 text-sm text-green-800 rounded-lg bg-green-50"
             role="alert"
           >
-            <FaCheckCircle className="flex-shrink-0 inline w-5 h-5 mr-3" />
-            <span className="font-medium">{success}</span>
+            <FaCheckCircle className="inline w-5 h-5 mr-3" />
+            {success}
           </div>
         )}
 
@@ -176,16 +148,12 @@ export default function EditProfile() {
           <div className="relative">
             <img
               src={preview || "/images/default.png"}
-              alt="Profile Preview"
-              className="w-36 h-36 rounded-full object-cover border-4 border-gray-200 shadow-lg"
-              onError={(e) => {
-                e.target.onerror = null
-                e.target.src = "/images/default.png"
-              }}
+              alt="Preview"
+              className="w-36 h-36 rounded-full object-cover border-4 border-gray-200"
             />
             <label
               htmlFor="picture-upload"
-              className="absolute -bottom-2 -right-2 flex items-center justify-center w-12 h-12 bg-orange-500 rounded-full text-white cursor-pointer hover:bg-orange-600 transition-transform transform hover:scale-110 shadow-md"
+              className="absolute -bottom-2 -right-2 flex items-center justify-center w-12 h-12 bg-orange-500 rounded-full text-white cursor-pointer hover:bg-orange-600 transition-transform transform hover:scale-110"
             >
               <FaCamera className="w-6 h-6" />
               <input
@@ -200,66 +168,84 @@ export default function EditProfile() {
           </div>
         </div>
 
+        {/* Form inputs remain the same */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Name
             </label>
             <input
+              id="name"
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email Address
             </label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
             />
           </div>
         </div>
 
-        <hr />
-        <p className="text-sm text-gray-500 text-center -my-4">
-          Update your password (optional)
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Min. 6 characters"
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              name="password_confirmation"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              placeholder="Repeat password"
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-            />
+        <div className="space-y-6">
+          <hr />
+          <p className="text-sm text-gray-500 text-center -my-4">
+            Update your password (optional)
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                New Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                value={passwordData.password}
+                onChange={handleChange}
+                placeholder="Min. 6 characters"
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="password_confirmation"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Confirm New Password
+              </label>
+              <input
+                id="password_confirmation"
+                type="password"
+                name="password_confirmation"
+                value={passwordData.password_confirmation}
+                onChange={handleChange}
+                placeholder="Repeat password"
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+              />
+            </div>
           </div>
         </div>
 
@@ -267,18 +253,16 @@ export default function EditProfile() {
           <button
             type="button"
             onClick={() => navigate("/author/profile")}
-            className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold transition"
+            className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center justify-center px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold transition disabled:bg-orange-300 disabled:cursor-not-allowed"
+            className="flex items-center justify-center px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold disabled:bg-orange-300"
           >
-            {isSubmitting && (
-              <FaSpinner className="animate-spin -ml-1 mr-3 h-5 w-5" />
-            )}
+            {isSubmitting && <FaSpinner className="animate-spin -ml-1 mr-3" />}
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </div>

@@ -22,6 +22,7 @@ export default function EditArticle() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
 
+  // useEffect ini sudah benar dan akan bekerja dengan service yang diperbaiki.
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
@@ -55,7 +56,9 @@ export default function EditArticle() {
     }
   }
 
-  const handleSubmit = async () => {
+  // Fungsi ini juga sudah benar dan akan memanggil service yang telah kita perbaiki.
+  const handleSubmit = async (e) => {
+    e.preventDefault() // Best practice
     if (!title || !categoryId || !content) {
       alert("Please fill out all required fields.")
       return
@@ -63,7 +66,7 @@ export default function EditArticle() {
     setUpdating(true)
 
     const formData = new FormData()
-    formData.append("_method", "PUT") // Method spoofing untuk Laravel
+    // formData.append("_method", "PUT")
     formData.append("name", title)
     formData.append("content", content)
     formData.append("category_id", categoryId)
@@ -89,7 +92,7 @@ export default function EditArticle() {
       {loading ? (
         <LoadingSpinner />
       ) : (
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <input
             type="text"
             value={title}
@@ -107,15 +110,15 @@ export default function EditArticle() {
                   <img
                     src={preview}
                     alt="Thumbnail Preview"
-                    className="mx-auto h-48 rounded-md"
+                    className="mx-auto h-48 w-auto rounded-md"
                   />
                 ) : (
                   <FaCloudUploadAlt className="mx-auto h-12 w-12 text-gray-400" />
                 )}
-                <div className="flex text-sm text-gray-600">
+                <div className="flex text-sm text-gray-600 justify-center">
                   <label
                     htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+                    className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none"
                   >
                     <span>Change image</span>
                     <input
@@ -160,20 +163,21 @@ export default function EditArticle() {
           <RichTextEditor value={content} onChange={setContent} />
           <div className="flex justify-end gap-4">
             <button
+              type="button"
               onClick={() => navigate("/author/manage-articles")}
               className="px-8 py-3 bg-gray-400 text-white font-semibold rounded-lg hover:bg-gray-500 transition"
             >
               Cancel
             </button>
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={updating}
               className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
             >
               {updating ? "Updating..." : "Update Article"}
             </button>
           </div>
-        </div>
+        </form>
       )}
     </AuthorCard>
   )
