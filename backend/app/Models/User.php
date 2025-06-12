@@ -2,50 +2,57 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'picture'];
+    protected $fillable = ['name', 'email', 'password', 'picture', 'role'];
+
     protected $hidden = ['password', 'remember_token'];
+
     protected function casts(): array
     {
-        return ['email_verified_at' => 'datetime', 'password' => 'hashed'];
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'role' => UserRole::class,
+        ];
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->role === UserRole::ADMIN;
     }
 
     protected function picture(): Attribute
     {
         return Attribute::make(
             get: function ($value) {
-                // 1. Handle null or default values.
                 if (!$value || $value === 'default.png') {
                     return asset('images/default.png');
                 }
-
-                // 2. Handle if the value is already a full URL.
                 if (filter_var($value, FILTER_VALIDATE_URL)) {
                     return $value;
                 }
-                
-                // 3. If the path from the database ALREADY starts
                 if (str_starts_with($value, '/storage/')) {
                     return asset($value);
                 }
-
-                // 4. For standard paths like 'public/pictures/file.jpg',
                 return asset(Storage::url($value));
             }
         );
     }
-    
+
     public function articles(): HasMany
     {
         return $this->hasMany(ArticleNews::class, 'author_id');
