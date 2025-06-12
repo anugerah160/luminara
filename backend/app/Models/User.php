@@ -21,10 +21,6 @@ class User extends Authenticatable
         return ['email_verified_at' => 'datetime', 'password' => 'hashed'];
     }
 
-    /**
-     * FINAL REVISION: Accessor for the 'picture' attribute.
-     * This logic now correctly handles all path variations.
-     */
     protected function picture(): Attribute
     {
         return Attribute::make(
@@ -39,15 +35,12 @@ class User extends Authenticatable
                     return $value;
                 }
                 
-                // 3. IMPORTANT FIX: If the path from the database ALREADY starts
-                // with '/storage/', just prepend the base URL with asset().
-                // This prevents the double '/storage//storage/' issue.
+                // 3. If the path from the database ALREADY starts
                 if (str_starts_with($value, '/storage/')) {
                     return asset($value);
                 }
 
                 // 4. For standard paths like 'public/pictures/file.jpg',
-                // convert it to a full URL.
                 return asset(Storage::url($value));
             }
         );

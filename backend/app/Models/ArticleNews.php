@@ -25,9 +25,6 @@ class ArticleNews extends Model
         'is_featured'
     ];
     
-    /**
-     * REVISI: Selalu tambahkan 'share_links' saat model diubah menjadi JSON.
-     */
     protected $appends = ['share_links'];
 
     /**
@@ -54,31 +51,18 @@ class ArticleNews extends Model
         return $this->hasMany(Comment::class, 'article_id');
     }
 
-    /**
-     * REVISI KUNCI 1: Accessor untuk atribut 'thumbnail'.
-     *
-     * Ini akan mengubah path gambar (misal: "thumbnails/file.jpg")
-     * menjadi URL lengkap yang benar (misal: "http://.../storage/thumbnails/file.jpg").
-     */
     protected function thumbnail(): Attribute
     {
         return Attribute::make(
             get: function ($value) {
-                // Jika ada path gambar, buat URL lengkap menggunakan disk 'public'.
                 if ($value) {
                     return Storage::disk('public')->url($value);
                 }
-                // Jika tidak, kembalikan null agar frontend bisa menanganinya.
                 return null;
             }
         );
     }
     
-    /**
-     * REVISI KUNCI 2: Accessor untuk membuat link share.
-     *
-     * Ini akan menghasilkan link share dengan format URL frontend yang benar.
-     */
     public function getShareLinksAttribute(): array
     {
         // Ambil URL frontend dari .env, jika tidak ada gunakan localhost:5173 sebagai default

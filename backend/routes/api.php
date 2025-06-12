@@ -59,11 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-    // Media
-    Route::post('/media/image', [MediaController::class, 'uploadImage']);
-    Route::post('/media/video', [MediaController::class, 'addVideo']);
-    Route::get('/media/article/{article_id}', [MediaController::class, 'getByArticle']);
-
     // Comments
     Route::post('/comments', [CommentController::class, 'store']);
 });
