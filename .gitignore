@@ -1,30 +1,51 @@
-# Node modules (React)
-frontend/node_modules/
-frontend/.env
-frontend/build/
+# File-file yang dihasilkan oleh sistem operasi
+.DS_Store
+Thumbs.db
 
-# Laravel
-backend/vendor/
-backend/.env
-backend/storage/
-backend/bootstrap/cache/
+# Konfigurasi Editor dan IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
 
-# Laravel log & debug
-backend/storage/*.key
-backend/storage/logs/
-backend/storage/framework/cache/data/*
-backend/storage/framework/sessions/*
-backend/storage/framework/views/*
-
-# IDE & Editor
+# File Log dan Cache
 *.log
-*.DS_Store
-*.vscode/
-*.idea/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Composer & NPM Lock Files tidak digunakan untuk saat ini
-# backend/composer.lock
-# frontend/package-lock.json
+# Direktori Dependencies
+/node_modules
+/vendor
+
+.env
+
+# Aset yang Dihasilkan oleh Vite Build
+/public/build
+
+# File dan Folder Laravel
+/public/storage
+/storage/app
+/storage/app/public
+/storage/framework
+/storage/logs
+.php-cs-fixer.cache
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+sail.yml
+
+# File yang dihasilkan oleh Laravel Sail
+docker-compose.yml
+.sail/
+sail
+
+# File yang dihasilkan oleh Laravel Telescope
+telescope.sqlite
+
+# File yang dihasilkan oleh otentikasi
+oauth-private.key
+oauth-public.key
 
 # Docker-related (optional)
 .env
