@@ -1,8 +1,9 @@
 // tailwind.config.js
 module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./resources/views/app.blade.php",
+    "./resources/js/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/flowbite-react/lib/esm/**/*.js",
   ],
   theme: {
     extend: {
@@ -16,6 +17,7 @@ module.exports = {
     },
   },
   plugins: [
+    // require('flowbite/plugin'),
     require('@tailwindcss/line-clamp'),
     require('@tailwindcss/typography'),
   ],
