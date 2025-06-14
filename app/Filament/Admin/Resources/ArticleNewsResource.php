@@ -4,21 +4,16 @@ namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\ArticleNewsResource\Pages;
 use App\Models\ArticleNews;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
+use Filament\Forms\Form;
 
 class ArticleNewsResource extends Resource
 {
@@ -32,38 +27,32 @@ class ArticleNewsResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('Main Content')->schema([
-                    TextInput::make('title')
+                Section::make('Article Management')->schema([
+                    TextInput::make('name')
+                        ->label('Article Title')
                         ->required()
-                        ->maxLength(255)
-                        ->live(onBlur: true)
-                        ->afterStateUpdated(fn(Set $set, ?string $state) => $set('slug', Str::slug($state))),
-                    TextInput::make('slug')
-                        ->required()
-                        ->maxLength(255)
-                        ->unique(ArticleNews::class, 'slug', ignoreRecord: true),
-                    RichEditor::make('content')
-                        ->required()
-                        ->columnSpanFull(),
-                ])->columns(2),
-
-                Section::make('Meta')->schema([
-                    FileUpload::make('image_path')
-                        ->label('Image')
-                        ->image()
-                        ->directory('articles'),
-                    Toggle::make('is_published')
-                        ->label('Published')
-                        ->default(true),
+                        ->disabled(),
+                    
                     Select::make('category_id')
                         ->relationship('category', 'name')
                         ->required(),
-                    Select::make('user_id')
+                    
+                    // --- PERBAIKAN ERROR ---
+                    // Mengganti nama relasi dari 'user' menjadi 'author' agar sesuai dengan model
+                    Select::make('author_id')
                         ->label('Author')
-                        ->relationship('user', 'name')
-                        ->required()
-                        ->default(auth()->id()),
-                ]),
+                        ->relationship('author', 'name')
+                        ->disabled(),
+
+                    Select::make('is_featured')
+                        ->label('Featured Article?')
+                        ->options([
+                            'yes' => 'Yes',
+                            'no' => 'No',
+                        ])
+                        ->required(),
+
+                ])->columns(2),
             ]);
     }
 
@@ -72,10 +61,16 @@ class ArticleNewsResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->sortable(),
-                ImageColumn::make('image_path')->label('Image'),
-                TextColumn::make('title')->searchable()->limit(30),
+                ImageColumn::make('thumbnail')->label('Image'),
+                TextColumn::make('name')->label('Title')->searchable()->limit(30),
                 TextColumn::make('category.name')->sortable(),
-                IconColumn::make('is_published')->boolean(),
+                IconColumn::make('is_featured')
+                    ->label('Featured')
+                    ->icon(fn (string $state): string => match ($state) {
+                        'yes' => 'heroicon-o-star',
+                        default => '',
+                    })
+                    ->color('warning'),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([
@@ -92,6 +87,14 @@ class ArticleNewsResource extends Resource
             ]);
     }
 
+    /**
+     * Menonaktifkan tombol dan halaman "Create"
+     */
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -103,7 +106,6 @@ class ArticleNewsResource extends Resource
     {
         return [
             'index' => Pages\ListArticleNews::route('/'),
-            'create' => Pages\CreateArticleNews::route('/create'),
             'edit' => Pages\EditArticleNews::route('/{record}/edit'),
         ];
     }

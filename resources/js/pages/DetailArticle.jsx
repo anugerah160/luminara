@@ -1,3 +1,4 @@
+// resources/js/pages/DetailArticle.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getArticleBySlug, getArticlesByAuthor } from '../services/articleService';
@@ -73,7 +74,7 @@ export default function DetailArticle() {
 
           {/* Content */}
           <div
-            className="prose max-w-none prose-lg text-gray-800"
+            className="prose max-w-none prose-lg text-gray-800 article-content"
             dangerouslySetInnerHTML={{ __html: article.content }}
           ></div>
 
@@ -81,8 +82,8 @@ export default function DetailArticle() {
           <Share links={article.share_links} />
         </div>
 
-        {/* Sidebar */}
-        <aside className="lg:col-span-4">
+        {/* Sidebar - Menambahkan kelas 'self-start sticky top-24' */}
+        <aside className="lg:col-span-4 self-start sticky top-24">
 
           {/* Ad Banner */}
           <AdBanner/>

@@ -3,7 +3,17 @@
 @tailwind utilities;
 
 body {
-  @apply bg-lightGray text-textGray font-sans;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
 
 @keyframes fadeIn {
@@ -34,6 +44,23 @@ body {
 .ProseMirror {
   caret-color: #111827; /* Tailwind gray-900 */
   animation: caret-blink 1s step-end infinite;
+}
+
+.ProseMirror img,
+.article-content img {
+    /* Diubah dari 80% menjadi 60% */
+    width: 80%; 
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 0.5rem; 
+    margin-top: 1.5rem; /* Sedikit menambah margin atas */
+    margin-bottom: 1.5rem; /* Sedikit menambah margin bawah */
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid #68CEF8;
 }
 
 @keyframes caret-blink {
