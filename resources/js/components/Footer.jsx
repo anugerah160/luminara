@@ -17,9 +17,9 @@ const Footer = () => {
           </p>
         </div>
 
-        {/* Alamat Pusat */}
+        {/* Head Office Address */}
         <div>
-          <h4 className="text-md font-semibold text-gray-900 mb-2">Alamat Pusat</h4>
+          <h4 className="text-md font-semibold text-gray-900 mb-2">Head Office</h4>
           <p className="mb-1">
             Jl. Asia Afrika No.158, Kb. Pisang, <br />
             Kec. Sumur Bandung, Kota Bandung, <br />
@@ -27,9 +27,9 @@ const Footer = () => {
           </p>
         </div>
 
-        {/* Alamat Cabang */}
+        {/* Branch Office Address */}
         <div>
-          <h4 className="text-md font-semibold text-gray-900 mb-2">Alamat Cabang</h4>
+          <h4 className="text-md font-semibold text-gray-900 mb-2">Branch Office</h4>
           <p>Bantul, Yogyakarta</p>
         </div>
       </div>
