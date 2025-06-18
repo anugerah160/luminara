@@ -39,10 +39,10 @@ export default function Header({ toggleSidebar }) {
 
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = "/images/default.png";
+    e.target.src = "https://storage.googleapis.com/luminara-bucket/thumbnail/default.png";
   };
 
-  const imageUrl = user?.picture || "/images/default.png";
+  const imageUrl = user?.picture || "https://storage.googleapis.com/luminara-bucket/thumbnail/default.png";
 
   return (
     <header className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-10">

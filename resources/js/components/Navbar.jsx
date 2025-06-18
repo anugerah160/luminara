@@ -38,7 +38,7 @@ export default function Navbar() {
 
   const handleImageError = (e) => {
     e.target.onerror = null
-    e.target.src = "/images/default.png"
+    e.target.src = "https://storage.googleapis.com/luminara-bucket/thumbnail/default.png"
   }
 
   return (
@@ -76,7 +76,7 @@ export default function Navbar() {
                 >
                   <img
                     key={user.picture}
-                    src={user.picture || "/images/default.png"}
+                    src={user.picture || "https://storage.googleapis.com/luminara-bucket/thumbnail/default.png"}
                     alt="User"
                     className="w-10 h-10 rounded-full object-cover border-2 border-gray-300 hover:border-orange-400 transition"
                     onError={handleImageError}
@@ -115,7 +115,6 @@ export default function Navbar() {
               </div>
             </>
           ) : (
-            // Tampilan untuk pengunjung
             <>
               <button
                 onClick={() => navigate("/login")}

@@ -15,14 +15,13 @@ class CategorySeeder extends Seeder
     public function run()
     {
         $categories = [
-            ['name' => 'Berita Terkini', 'slug' => 'berita-terkini', 'icon' => 'FaNewspaper'],
-            ['name' => 'Olahraga', 'slug' => 'olahraga', 'icon' => 'FaFutbol'],
-            ['name' => 'Teknologi', 'slug' => 'teknologi', 'icon' => 'FaLaptopCode'],
-            ['name' => 'Hiburan', 'slug' => 'hiburan', 'icon' => 'FaFilm'],
-            ['name' => 'Gaya Hidup', 'slug' => 'gaya-hidup', 'icon' => 'FaHeart'],
-            ['name' => 'Politik', 'slug' => 'politik', 'icon' => 'FaLandmark'],
-            ['name' => 'Bisnis', 'slug' => 'bisnis', 'icon' => 'FaBriefcase'],
-            ['name' => 'Kuliner', 'slug' => 'kuliner', 'icon' => 'FaUtensils'],
+            ['name' => 'Sports', 'slug' => 'sports', 'icon' => 'FaFutbol'],
+            ['name' => 'Politics', 'slug' => 'politics', 'icon' => 'FaLandmark'],
+            ['name' => 'Economy', 'slug' => 'economy', 'icon' => 'FaBriefcase'],
+            ['name' => 'Technology', 'slug' => 'technology', 'icon' => 'FaLaptopCode'],
+            ['name' => 'Entertainment', 'slug' => 'entertainment', 'icon' => 'FaFilm'],
+            ['name' => 'Health', 'slug' => 'health', 'icon' => 'FaHeartbeat'],
+            ['name' => 'Education', 'slug' => 'education', 'icon' => 'FaUserGraduate'],
         ];
 
         foreach ($categories as $category) {

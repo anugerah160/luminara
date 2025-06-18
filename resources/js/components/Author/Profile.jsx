@@ -58,7 +58,7 @@ export default function Profile() {
 
   const handleImageError = (e) => {
     e.target.onerror = null
-    e.target.src = "/images/default.png"
+    e.target.src = "https://storage.googleapis.com/luminara-bucket/thumbnail/default.png"
   }
 
   if (loading || !user) {
@@ -70,7 +70,7 @@ export default function Profile() {
   }
 
   // REVISED: Use user.picture directly.
-  const imageUrl = user?.picture || "/images/default.png"
+  const imageUrl = user?.picture || "https://storage.googleapis.com/luminara-bucket/thumbnail/default.png"
 
   return (
     <AuthorCard icon={<FaUser size={28} />} title="My Profile">

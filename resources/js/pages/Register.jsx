@@ -7,18 +7,20 @@ export default function Register() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    password_confirmation: '',
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
 
-    if (form.password !== form.confirmPassword) {
+    if (form.password !== form.password_confirmation) {
       setError('Password dan Konfirmasi Password tidak cocok.');
       return;
     }
@@ -28,10 +30,17 @@ export default function Register() {
         name: form.name,
         email: form.email,
         password: form.password,
+        password_confirmation: form.password_confirmation,
       });
       navigate('/login');
     } catch (err) {
-      setError('Registrasi gagal. Periksa kembali data Anda.');
+      if (err.response?.data?.errors) {
+        const errors = err.response.data.errors;
+        const messages = Object.values(errors).flat().join(', ');
+        setError(messages);
+      } else {
+        setError('Registrasi gagal. Periksa kembali data Anda.');
+      }
     }
   };
 
@@ -72,10 +81,10 @@ export default function Register() {
           />
           <input
             type="password"
-            name="confirmPassword"
+            name="password_confirmation"
             placeholder="Konfirmasi Password"
             className="w-full border px-4 py-2 rounded-lg focus:border-orange-500"
-            value={form.confirmPassword}
+            value={form.password_confirmation}
             onChange={handleChange}
             required
           />
