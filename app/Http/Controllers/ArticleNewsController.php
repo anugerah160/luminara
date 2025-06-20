@@ -190,7 +190,7 @@ class ArticleNewsController extends Controller
      * Mencari artikel berdasarkan keyword dan filter lainnya. /articles/search
      */
     public function search(Request $request)
-{
+    {
     // Ambil input 'q' untuk pencarian keyword
     $keyword = $request->input('q');
 
