@@ -187,20 +187,34 @@ class ArticleNewsController extends Controller
     }
     
     /**
-     * Mencari artikel berdasarkan keyword dan filter lainnya.
+     * Mencari artikel berdasarkan keyword dan filter lainnya. /articles/search
      */
     public function search(Request $request)
-    {
-        $keyword = $request->input('q');
-        
-        $articles = ArticleNews::with('author:id,name', 'category:id,name')
-            ->when($keyword, function ($query, $keyword) {
-                $query->where('name', 'like', "%{$keyword}%")
-                      ->orWhere('content', 'like', "%{$keyword}%");
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-    
-        return response()->json($articles);
+{
+    // Ambil input 'q' untuk pencarian keyword
+    $keyword = $request->input('q');
+
+    // Ambil input 'author' untuk filter nama penulis
+    $authorName = $request->input('author');
+
+    $articles = ArticleNews::with('author:id,name', 'category:id,name')
+        // Filter berdasarkan keyword di judul atau konten artikel
+        ->when($keyword, function ($query, $keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                  ->orWhere('content', 'like', "%{$keyword}%");
+            });
+        })
+        // Filter berdasarkan nama penulis melalui relasi 'author'
+        ->when($authorName, function ($query, $authorName) {
+            $query->whereHas('author', function ($q) use ($authorName) {
+                $q->where('name', 'like', "%{$authorName}%");
+            });
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10)
+        ->appends($request->query());
+
+    return response()->json($articles);
     }
 }

@@ -91,11 +91,11 @@ export default function FeaturedNews() {
               </p>
               <div className="text-sm">
                 By{" "}
-                <Link to={`/author/${article.author.id}`} className="font-semibold hover:text-orange-400 transition-colors">
+                <Link to={`/search?author=${article.author.name}`} className="font-semibold hover:text-orange-400 transition-colors">
                   {article.author.name}
                 </Link>{" "}
                 in{" "}
-                <Link to={`/category/${article.category.id}`} className="font-semibold hover:text-orange-400 transition-colors">
+                <Link to={`/categories/${article.category.name}`} className="font-semibold hover:text-orange-400 transition-colors">
                   {article.category.name}
                 </Link>
               </div>
